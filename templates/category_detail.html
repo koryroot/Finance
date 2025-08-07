@@ -1,0 +1,60 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="space-y-8">
+    <div>
+        <a href="{{ url_for('dashboard') }}" class="text-blue-400 hover:underline">&larr; Volver al Panel</a>
+        <h2 class="text-3xl font-bold text-white mt-2">Detalle de: {{ category.name }}</h2>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Partidas Planificadas -->
+        <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
+            <h3 class="text-xl font-bold mb-4">Partidas Planificadas</h3>
+            <ul class="space-y-2">
+                {% for p in planned_expenses %}
+                <li class="flex justify-between items-center">
+                    <div class="flex items-center">
+                        {% if p.is_paid %}
+                            <form action="{{ url_for('unpay_planned_expense_route', planned_expense_id=p.id) }}" method="POST" class="flex items-center">
+                                <input type="checkbox" checked class="h-5 w-5 rounded bg-gray-700 border-gray-600" onchange="this.form.submit()">
+                                <button type="submit" class="ml-2 text-xs text-yellow-400 hover:underline">Deshacer</button>
+                            </form>
+                        {% else %}
+                            <form action="{{ url_for('pay_planned_expense_route', planned_expense_id=p.id) }}" method="POST">
+                                <input type="checkbox" onchange="this.form.submit()" class="h-5 w-5 rounded bg-gray-700 border-gray-600">
+                            </form>
+                        {% endif %}
+                        <span class="ml-3 {{ 'line-through text-gray-500' if p.is_paid else '' }}">{{ p.description }} - DOP {{ "{:,.2f}".format(p.amount) }}</span>
+                    </div>
+                </li>
+                {% else %}
+                <li class="text-gray-500 text-sm">No hay partidas planificadas. Añádelas en la sección de Presupuesto.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Gastos Reales Registrados -->
+        <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
+            <h3 class="text-xl font-bold mb-4">Gastos Reales Registrados</h3>
+            <ul class="divide-y divide-gray-700">
+                {% for expense in expenses %}
+                <li class="py-3 flex justify-between items-center">
+                    <div>
+                        <p class="font-semibold">{{ expense.description }}</p>
+                        <p class="text-sm text-gray-400">{{ expense.date }}</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="font-bold text-red-400">DOP {{ "{:,.2f}".format(expense.amount) }}</span>
+                        <form action="{{ url_for('delete_expense_route', expense_id=expense.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro?');">
+                            <button type="submit" class="text-gray-500 hover:text-red-500">&times;</button>
+                        </form>
+                    </div>
+                </li>
+                {% else %}
+                <li class="py-3 text-center text-gray-500">No hay gastos reales en esta categoría.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

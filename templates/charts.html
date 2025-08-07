@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="space-y-8">
+    <h2 class="text-3xl font-bold text-white">Análisis Gráfico Anual</h2>
+    <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
+         <canvas id="barChart"></canvas>
+    </div>
+</div>
+
+<script>
+    const barChartData = {{ bar_chart_data | tojson }};
+    const barCtx = document.getElementById('barChart').getContext('2d');
+    new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: barChartData.labels,
+            datasets: [
+                { label: 'Ingresos', data: barChartData.incomes, backgroundColor: '#10b981', borderRadius: 4 },
+                { label: 'Gastos', data: barChartData.expenses, backgroundColor: '#ef4444', borderRadius: 4 }
+            ]
+        },
+        options: { 
+            responsive: true,
+            scales: {
+                y: { ticks: { color: '#9CA3AF' }, grid: { color: '#374151' } },
+                x: { ticks: { color: '#9CA3AF' }, grid: { display: false } }
+            },
+            plugins: { legend: { labels: { color: '#D1D5DB' } } }
+        }
+    });
+</script>
+{% endblock %}
