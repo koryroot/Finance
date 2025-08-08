@@ -1,170 +1,149 @@
 # app.py
-from flask import Flask, render_template, request, redirect, url_for, flash
-from data import *
+from flask import Flask, render_template, request, redirect, url_for, flash, session
+import firebase_admin
+from firebase_admin import credentials, firestore
+import pyrebase
+from firebase_config import config
 import os
 from datetime import datetime
 from collections import defaultdict
 import locale
 
-basedir = os.path.abspath(os.path.dirname(__file__))
-app = Flask(__name__, template_folder=os.path.join(basedir, 'templates'))
-app.secret_key = 'tu_clave_secreta_aqui'
+# --- INICIALIZACIÓN ---
+cred = credentials.Certificate('firebase_credentials.json')
+firebase_admin.initialize_app(cred)
+db = firestore.client()
+
+firebase = pyrebase.initialize_app(config)
+auth = firebase.auth()
+
+app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', 'una_clave_por_defecto_solo_para_pruebas')
 
 try:
     locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
 except locale.Error:
     locale.setlocale(locale.LC_TIME, 'Spanish')
 
-# --- RUTAS PRINCIPALES ---
+# --- FUNCIÓN AUXILIAR ---
+def check_and_create_user_data(user_id, email):
+    """Verifica si un usuario tiene datos iniciales y los crea si no existen."""
+    user_ref = db.collection('users').document(user_id)
+    
+    if not user_ref.get().exists:
+        # El usuario es nuevo, crear documento y datos iniciales
+        user_ref.set({'email': email, 'created_at': firestore.SERVER_TIMESTAMP})
+        
+        categories_ref = user_ref.collection('categories')
+        categories_ref.add({'name': 'Diezmo', 'budget_percent': 10, 'color': '#f97316'})
+        categories_ref.add({'name': 'Gastos Fijos', 'budget_percent': 40, 'color': '#3b82f6'})
+        categories_ref.add({'name': 'Gastos Personales', 'budget_percent': 30, 'color': '#8b5cf6'})
+        categories_ref.add({'name': 'Ahorro e Inversión', 'budget_percent': 20, 'color': '#10b981'})
+        
+        user_ref.collection('savings').document('emergency_fund').set({'goal': 50000, 'current': 0})
+        return True # Es un usuario nuevo
+    return False # Es un usuario existente
+
+# --- RUTAS DE AUTENTICACIÓN Y PÚBLICAS ---
 @app.route('/')
+def landing():
+    if 'user' in session:
+        return redirect(url_for('dashboard'))
+    return render_template('landing.html')
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        try:
+            user = auth.create_user_with_email_and_password(email, password)
+            check_and_create_user_data(user['localId'], email)
+            flash('¡Cuenta creada con éxito! Por favor, inicia sesión.', 'success')
+            return redirect(url_for('login'))
+        except Exception as e:
+            flash('Error al crear la cuenta. El correo ya podría estar en uso.', 'danger')
+    return render_template('signup.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if 'user' in session:
+        return redirect(url_for('dashboard'))
+        
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        try:
+            user = auth.sign_in_with_email_and_password(email, password)
+            session['user'] = user['localId']
+            # Verificar si es la primera vez que inicia sesión (por si acaso)
+            user_info = auth.get_account_info(user['idToken'])
+            user_email = user_info['users'][0]['email']
+            check_and_create_user_data(user['localId'], user_email)
+            return redirect(url_for('dashboard'))
+        except Exception as e:
+            flash('Correo o contraseña incorrectos.', 'danger')
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('user', None)
+    flash('Has cerrado sesión.', 'success')
+    return redirect(url_for('landing'))
+
+# --- RUTAS PRINCIPALES (PROTEGIDAS) ---
+@app.route('/dashboard')
 def dashboard():
-    DATA = get_all_data()
-    current_month = datetime.now().month
-    current_year = datetime.now().year
+    if 'user' not in session:
+        return redirect(url_for('login'))
     
-    monthly_income_list = [inc for inc in DATA['income'] if datetime.fromisoformat(inc['date']).month == current_month and datetime.fromisoformat(inc['date']).year == current_year]
-    monthly_expenses = [exp for exp in DATA['expenses'] if datetime.fromisoformat(exp['date']).month == current_month and datetime.fromisoformat(exp['date']).year == current_year]
+    user_id = session['user']
     
-    total_monthly_income = sum(inc['amount'] for inc in monthly_income_list)
-    total_monthly_expenses = sum(exp['amount'] for exp in monthly_expenses)
-    
-    total_budgeted = total_monthly_income
+    try:
+        # Obtener datos del usuario desde Firestore
+        income_docs = db.collection('users').document(user_id).collection('income').stream()
+        expenses_docs = db.collection('users').document(user_id).collection('expenses').stream()
+        categories_docs = db.collection('users').document(user_id).collection('categories').stream()
 
-    expenses_by_category = []
-    for cat in DATA['categories']:
-        budget_amount = total_monthly_income * (cat['budget_percent'] / 100)
-        spent = sum(exp['amount'] for exp in monthly_expenses if exp['categoryId'] == cat['id'])
-        percentage = (spent / budget_amount * 100) if budget_amount > 0 else 0
-        
-        expenses_by_category.append({
-            **cat, 'budget_amount': budget_amount, 'spent': spent, 
-            'remaining': budget_amount - spent, 'percentage_capped': min(percentage, 100)
-        })
+        all_income = [doc.to_dict() for doc in income_docs]
+        all_expenses = [doc.to_dict() for doc in expenses_docs]
+        all_categories = [doc.to_dict() for doc in categories_docs]
 
-    return render_template(
-        'dashboard.html', month_name=datetime.now().strftime('%B').capitalize(),
-        total_income=total_monthly_income, total_expenses=total_monthly_expenses,
-        total_budgeted=total_budgeted,
-        expenses_by_category=expenses_by_category, categories=DATA['categories'],
-        today_date=datetime.now().strftime('%Y-%m-%d')
-    )
+        # Lógica de cálculo
+        current_month = datetime.now().month
+        current_year = datetime.now().year
 
-@app.route('/budget', methods=['GET', 'POST'])
-def budget():
-    if request.method == 'POST':
-        update_budget_percentages(request.form)
-        flash('Porcentajes del presupuesto actualizados.', 'success')
-        return redirect(url_for('budget'))
-        
-    DATA = get_all_data()
-    total_income = sum(inc['amount'] for inc in DATA['income'])
-    
-    budget_details = []
-    for cat in DATA['categories']:
-        budget_amount = total_income * (cat['budget_percent'] / 100)
-        planned_exp = [p for p in DATA['planned_expenses'] if p['categoryId'] == cat['id']]
-        budget_details.append({**cat, 'budget_amount': budget_amount, 'planned_expenses': planned_exp})
+        monthly_income = [inc for inc in all_income if inc and 'date' in inc and datetime.fromisoformat(inc['date']).month == current_month and datetime.fromisoformat(inc['date']).year == current_year]
+        monthly_expenses = [exp for exp in all_expenses if exp and 'date' in exp and datetime.fromisoformat(exp['date']).month == current_month and datetime.fromisoformat(exp['date']).year == current_year]
 
-    return render_template('budget.html', data=DATA, budget_details=budget_details, total_income=total_income)
+        total_monthly_income = sum(inc.get('amount', 0) for inc in monthly_income)
+        total_monthly_expenses = sum(exp.get('amount', 0) for exp in monthly_expenses)
+        total_budgeted = total_monthly_income
 
-@app.route('/savings', methods=['GET', 'POST'])
-def savings():
-    if request.method == 'POST':
-        update_emergency_fund(request.form.get('goal'), request.form.get('current'))
-        flash('Fondo de emergencia actualizado.', 'success')
-        return redirect(url_for('savings'))
-    return render_template('savings.html', data=get_all_data())
+        expenses_by_category = []
+        for cat in all_categories:
+            if not cat: continue
+            budget_amount = total_monthly_income * (cat.get('budget_percent', 0) / 100)
+            spent = sum(exp.get('amount', 0) for exp in monthly_expenses if exp.get('categoryId') == cat.get('id'))
+            percentage = (spent / budget_amount * 100) if budget_amount > 0 else 0
+            
+            expenses_by_category.append({
+                **cat, 'budget_amount': budget_amount, 'spent': spent, 
+                'remaining': budget_amount - spent, 'percentage_capped': min(percentage, 100)
+            })
 
-@app.route('/charts')
-def charts():
-    DATA = get_all_data()
-    current_month = datetime.now().month
-    current_year = datetime.now().year
-    monthly_expenses = [exp for exp in DATA['expenses'] if datetime.fromisoformat(exp['date']).month == current_month and datetime.fromisoformat(exp['date']).year == current_year]
-    total_monthly_income = sum(inc['amount'] for inc in DATA['income'] if datetime.fromisoformat(inc['date']).month == current_month and datetime.fromisoformat(inc['date']).year == current_year)
+        return render_template(
+            'dashboard.html', month_name=datetime.now().strftime('%B').capitalize(),
+            total_income=total_monthly_income, total_expenses=total_monthly_expenses,
+            total_budgeted=total_budgeted,
+            expenses_by_category=expenses_by_category, categories=all_categories,
+            today_date=datetime.now().strftime('%Y-%m-%d')
+        )
+    except Exception as e:
+        flash(f"Ocurrió un error al cargar tus datos: {e}", "danger")
+        return render_template('dashboard.html', month_name=datetime.now().strftime('%B').capitalize())
 
-    pie_data = defaultdict(float)
-    for exp in monthly_expenses:
-        cat_name = next((c['name'] for c in DATA['categories'] if c['id'] == exp['categoryId']), "Otro")
-        pie_data[cat_name] += exp['amount']
-
-    budget_vs_actual = []
-    for cat in DATA['categories']:
-        budget_amount = total_monthly_income * (cat['budget_percent'] / 100)
-        spent = sum(exp['amount'] for exp in monthly_expenses if exp['categoryId'] == cat['id'])
-        budget_vs_actual.append({'name': cat['name'], 'budget': budget_amount, 'spent': spent})
-        
-    return render_template('charts.html', pie_data=dict(pie_data), budget_vs_actual=budget_vs_actual)
-
-# --- RUTAS DE ACCIONES ---
-@app.route('/add_transaction', methods=['POST'])
-def add_transaction_route():
-    trans_type = request.form.get('type')
-    description = request.form.get('description')
-    amount = request.form.get('amount')
-    date = request.form.get('date')
-
-    if trans_type == 'expense':
-        category_id = request.form.get('category_id')
-        add_expense(description, amount, category_id, date)
-        flash('Gasto añadido con éxito.', 'success')
-    elif trans_type == 'income':
-        add_income(description, amount, date)
-        flash('Ingreso añadido con éxito.', 'success')
-    
-    return redirect(url_for('dashboard'))
-
-@app.route('/add_planned_expense', methods=['POST'])
-def add_planned_expense_route():
-    add_planned_expense(request.form.get('description'), request.form.get('amount'), request.form.get('category_id'))
-    return redirect(url_for('budget'))
-
-@app.route('/pay_planned_expense/<int:planned_expense_id>', methods=['POST'])
-def pay_planned_expense_route(planned_expense_id):
-    pay_planned_expense(planned_expense_id)
-    return redirect(request.referrer or url_for('budget'))
-
-@app.route('/unpay_planned_expense/<int:planned_expense_id>', methods=['POST'])
-def unpay_planned_expense_route(planned_expense_id):
-    unpay_planned_expense(planned_expense_id)
-    return redirect(request.referrer or url_for('budget'))
-
-@app.route('/delete_planned_expense/<int:planned_expense_id>', methods=['POST'])
-def delete_planned_expense_route(planned_expense_id):
-    delete_planned_expense(planned_expense_id)
-    return redirect(url_for('budget'))
-    
-@app.route('/category/<int:category_id>')
-def category_detail(category_id):
-    category = get_category_by_id(category_id)
-    if not category: return "Categoría no encontrada", 404
-    
-    category_expenses = sorted([exp for exp in get_all_data()['expenses'] if exp['categoryId'] == category_id], key=lambda x: x['date'], reverse=True)
-    planned_expenses = [p for p in get_all_data()['planned_expenses'] if p['categoryId'] == category_id]
-    
-    return render_template('category_detail.html', category=category, expenses=category_expenses, planned_expenses=planned_expenses)
-
-@app.route('/delete_expense/<int:expense_id>', methods=['POST'])
-def delete_expense_route(expense_id):
-    expense = get_expense_by_id(expense_id)
-    if expense:
-        category_id = expense['categoryId']
-        delete_expense(expense_id)
-        flash('Gasto eliminado.', 'success')
-        return redirect(url_for('category_detail', category_id=category_id))
-    return redirect(url_for('dashboard'))
-
-@app.route('/add_savings_goal', methods=['POST'])
-def add_savings_goal_route():
-    add_savings_goal(request.form.get('name'), request.form.get('goal'), request.form.get('current', 0))
-    flash('Nueva meta de ahorro añadida.', 'success')
-    return redirect(url_for('savings'))
-
-@app.route('/delete_savings_goal/<int:goal_id>', methods=['POST'])
-def delete_savings_goal_route(goal_id):
-    delete_savings_goal(goal_id)
-    flash('Meta de ahorro eliminada.', 'success')
-    return redirect(url_for('savings'))
+# --- El resto de tus rutas irán aquí ---
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
