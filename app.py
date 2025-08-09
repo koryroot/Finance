@@ -1,5 +1,5 @@
 # app.py
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 import firebase_admin
 from firebase_admin import credentials, firestore
 import pyrebase
@@ -8,6 +8,7 @@ import os
 from datetime import datetime
 from collections import defaultdict
 import locale
+from functools import wraps
 
 # --- INICIALIZACIÓN ---
 cred = credentials.Certificate('firebase_credentials.json')
@@ -25,24 +26,48 @@ try:
 except locale.Error:
     locale.setlocale(locale.LC_TIME, 'Spanish')
 
+@app.template_filter('number_format')
+def number_format(value):
+    try:
+        return "{:,.2f}".format(float(value))
+    except (ValueError, TypeError):
+        return value
+
+# --- DECORADORES DE RUTAS ---
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def onboarding_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        user_id = session.get('user')
+        if not user_id: return redirect(url_for('login'))
+        user_ref = db.collection('users').document(user_id)
+        user_doc = user_ref.get()
+        if user_doc.exists and user_doc.to_dict().get('onboarding_complete', False):
+            return f(*args, **kwargs)
+        else:
+            income_check = user_ref.collection('income').limit(1).get()
+            if not income_check:
+                return redirect(url_for('onboarding_income'))
+            return redirect(url_for('onboarding_budget'))
+    return decorated_function
+
 # --- FUNCIÓN AUXILIAR ---
 def check_and_create_user_data(user_id, email):
-    """Verifica si un usuario tiene datos iniciales y los crea si no existen."""
     user_ref = db.collection('users').document(user_id)
-    
     if not user_ref.get().exists:
-        # El usuario es nuevo, crear documento y datos iniciales
-        user_ref.set({'email': email, 'created_at': firestore.SERVER_TIMESTAMP})
-        
+        user_ref.set({'email': email, 'created_at': firestore.SERVER_TIMESTAMP, 'onboarding_complete': False})
         categories_ref = user_ref.collection('categories')
-        categories_ref.add({'name': 'Diezmo', 'budget_percent': 10, 'color': '#f97316'})
-        categories_ref.add({'name': 'Gastos Fijos', 'budget_percent': 40, 'color': '#3b82f6'})
-        categories_ref.add({'name': 'Gastos Personales', 'budget_percent': 30, 'color': '#8b5cf6'})
+        categories_ref.add({'name': 'Necesidades', 'budget_percent': 50, 'color': '#3b82f6'})
+        categories_ref.add({'name': 'Deseos', 'budget_percent': 30, 'color': '#8b5cf6'})
         categories_ref.add({'name': 'Ahorro e Inversión', 'budget_percent': 20, 'color': '#10b981'})
-        
-        user_ref.collection('savings').document('emergency_fund').set({'goal': 50000, 'current': 0})
-        return True # Es un usuario nuevo
-    return False # Es un usuario existente
+        user_ref.collection('savings').document('emergency_fund').set({'goal': 0, 'current': 0})
 
 # --- RUTAS DE AUTENTICACIÓN Y PÚBLICAS ---
 @app.route('/')
@@ -59,31 +84,40 @@ def signup():
         try:
             user = auth.create_user_with_email_and_password(email, password)
             check_and_create_user_data(user['localId'], email)
-            flash('¡Cuenta creada con éxito! Por favor, inicia sesión.', 'success')
-            return redirect(url_for('login'))
+            session['user'] = user['localId']
+            return redirect(url_for('onboarding_welcome'))
         except Exception as e:
-            flash('Error al crear la cuenta. El correo ya podría estar en uso.', 'danger')
-    return render_template('signup.html')
+            flash('Error al crear la cuenta.', 'danger')
+    return render_template('signup.html', firebase_config=config)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if 'user' in session:
         return redirect(url_for('dashboard'))
-        
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
         try:
             user = auth.sign_in_with_email_and_password(email, password)
             session['user'] = user['localId']
-            # Verificar si es la primera vez que inicia sesión (por si acaso)
-            user_info = auth.get_account_info(user['idToken'])
-            user_email = user_info['users'][0]['email']
-            check_and_create_user_data(user['localId'], user_email)
             return redirect(url_for('dashboard'))
         except Exception as e:
             flash('Correo o contraseña incorrectos.', 'danger')
-    return render_template('login.html')
+    return render_template('login.html', firebase_config=config)
+
+@app.route('/google-signin', methods=['POST'])
+def google_signin():
+    try:
+        token = request.json['idToken']
+        user = auth.get_account_info(token)['users'][0]
+        user_id = user['localId']
+        user_email = user['email']
+        is_new_user = not db.collection('users').document(user_id).get().exists
+        check_and_create_user_data(user_id, user_email)
+        session['user'] = user_id
+        return jsonify({'status': 'success', 'new_user': is_new_user})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
 
 @app.route('/logout')
 def logout():
@@ -91,12 +125,60 @@ def logout():
     flash('Has cerrado sesión.', 'success')
     return redirect(url_for('landing'))
 
+# --- RUTAS DE ONBOARDING ---
+@app.route('/welcome')
+@login_required
+def onboarding_welcome():
+    return render_template('onboarding_welcome.html')
+
+@app.route('/onboarding/income', methods=['GET', 'POST'])
+@login_required
+def onboarding_income():
+    user_id = session['user']
+    if request.method == 'POST':
+        source = request.form.get('source')
+        amount = request.form.get('amount')
+        date = datetime.now().strftime('%Y-%m-%d')
+        db.collection('users').document(user_id).collection('income').add({
+            'source': source, 'amount': float(amount), 'date': date
+        })
+        return redirect(url_for('onboarding_budget'))
+    return render_template('onboarding_income.html')
+
+@app.route('/onboarding/budget', methods=['GET', 'POST'])
+@login_required
+def onboarding_budget():
+    user_id = session['user']
+    if request.method == 'POST':
+        return redirect(url_for('onboarding_savings'))
+    
+    categories_docs = db.collection('users').document(user_id).collection('categories').stream()
+    categories = [doc.to_dict() for doc in categories_docs]
+    return render_template('onboarding_budget.html', categories=categories)
+
+@app.route('/onboarding/savings', methods=['GET', 'POST'])
+@login_required
+def onboarding_savings():
+    user_id = session['user']
+    if request.method == 'POST':
+        goal = request.form.get('goal')
+        db.collection('users').document(user_id).collection('savings').document('emergency_fund').update({
+            'goal': float(goal)
+        })
+        db.collection('users').document(user_id).update({'onboarding_complete': True})
+        flash('¡Configuración completada! Ya puedes empezar a usar tu billetera.', 'success')
+        return redirect(url_for('dashboard'))
+    
+    income_docs = db.collection('users').document(user_id).collection('income').stream()
+    total_income = sum(doc.to_dict().get('amount', 0) for doc in income_docs)
+    suggested_goal = total_income * 3
+    return render_template('onboarding_savings.html', suggested_goal=suggested_goal)
+
 # --- RUTAS PRINCIPALES (PROTEGIDAS) ---
 @app.route('/dashboard')
+@login_required
+@onboarding_required
 def dashboard():
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    
     user_id = session['user']
     
     try:
@@ -107,7 +189,7 @@ def dashboard():
 
         all_income = [doc.to_dict() for doc in income_docs]
         all_expenses = [doc.to_dict() for doc in expenses_docs]
-        all_categories = [doc.to_dict() for doc in categories_docs]
+        all_categories = [{'id': doc.id, **doc.to_dict()} for doc in categories_docs]
 
         # Lógica de cálculo
         current_month = datetime.now().month
@@ -143,7 +225,7 @@ def dashboard():
         flash(f"Ocurrió un error al cargar tus datos: {e}", "danger")
         return render_template('dashboard.html', month_name=datetime.now().strftime('%B').capitalize())
 
-# --- El resto de tus rutas irán aquí ---
+# --- El resto de tus rutas (savings, charts, etc.) irán aquí ---
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)

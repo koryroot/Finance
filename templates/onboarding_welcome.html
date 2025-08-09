@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="min-h-screen flex flex-col items-center justify-center text-center relative overflow-hidden">
+    <canvas id="confetti-canvas" class="absolute top-0 left-0 w-full h-full"></canvas>
+    <h1 class="text-5xl font-extrabold text-white z-10">¡Bienvenido/a!</h1>
+    <p class="text-xl text-gray-400 mt-4 z-10">Estamos preparando tu billetera inteligente.</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const canvas = document.getElementById('confetti-canvas');
+        const myConfetti = confetti.create(canvas, {
+            resize: true,
+            useWorker: true
+        });
+        myConfetti({
+            particleCount: 250,
+            spread: 180,
+            origin: { y: 0.6 }
+        });
+
+        setTimeout(function() {
+            window.location.href = "{{ url_for('onboarding_income') }}";
+        }, 3000);
+    });
+</script>
+{% endblock %}
