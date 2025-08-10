@@ -21,7 +21,8 @@
         });
 
         setTimeout(function() {
-            window.location.href = "{{ url_for('onboarding_income') }}";
+            // CAMBIO: Apuntamos la redirección al blueprint 'main'
+            window.location.href = "{{ url_for('main.onboarding_income') }}";
         }, 3000);
     });
 </script>
