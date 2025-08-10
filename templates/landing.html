@@ -6,8 +6,8 @@
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-2xl font-bold">Billetera Inteligente</h1>
             <div>
-                <a href="{{ url_for('login') }}" class="text-gray-300 hover:text-white mr-4">Iniciar Sesión</a>
-                <a href="{{ url_for('signup') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Registrarse Gratis</a>
+                <a href="{{ url_for('auth.login') }}" class="text-gray-300 hover:text-white mr-4">Iniciar Sesión</a>
+                <a href="{{ url_for('auth.signup') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Registrarse Gratis</a>
             </div>
         </div>
     </header>
@@ -16,7 +16,7 @@
     <section class="text-center py-20">
         <h2 class="text-5xl font-extrabold mb-4">Toma el control de tus finanzas.</h2>
         <p class="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">Una forma simple y visual de presupuestar, ahorrar y alcanzar tus metas financieras, diseñada para ti.</p>
-        <a href="{{ url_for('signup') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full text-lg">Empieza Ahora</a>
+        <a href="{{ url_for('auth.signup') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full text-lg">Empieza Ahora</a>
     </section>
 
     <!-- Features Section -->
