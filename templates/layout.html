@@ -11,28 +11,31 @@
 <body class="bg-gray-900 text-gray-100">
     <div class="flex flex-col min-h-screen">
         <div class="flex flex-grow">
-            {% if session.user and request.endpoint not in ['landing', 'login', 'signup'] and 'onboarding' not in request.endpoint %}
+            {# Esta lógica condicional muestra la barra lateral solo si el usuario ha iniciado sesión y no está en las páginas de login, signup o en el proceso de onboarding. #}
+            {% if session.user and request.endpoint not in ['auth.login', 'auth.signup', 'index'] and 'onboarding' not in request.endpoint %}
             <!-- Barra Lateral -->
             <nav class="hidden md:flex flex-col items-center w-24 bg-gray-800 h-screen shadow-lg fixed top-0 left-0">
                 <div class="py-8 space-y-6 flex flex-col h-full">
-                    <a href="{{ url_for('dashboard') }}" class="flex flex-col items-center p-3 rounded-2xl {{ 'bg-blue-600 text-white' if request.endpoint == 'dashboard' else 'text-gray-400 hover:bg-gray-700' }}">
+                    <!-- CAMBIO 1: Actualizamos todas las rutas del menú para apuntar al blueprint 'main' -->
+                    <a href="{{ url_for('main.dashboard') }}" class="flex flex-col items-center p-3 rounded-2xl {{ 'bg-blue-600 text-white' if 'dashboard' in request.endpoint else 'text-gray-400 hover:bg-gray-700' }}">
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                         <span class="text-xs mt-1">Panel</span>
                     </a>
-                    <a href="{{ url_for('budget') }}" class="flex flex-col items-center p-3 rounded-2xl {{ 'bg-blue-600 text-white' if request.endpoint == 'budget' else 'text-gray-400 hover:bg-gray-700' }}">
+                    <a href="{{ url_for('main.budget') }}" class="flex flex-col items-center p-3 rounded-2xl {{ 'bg-blue-600 text-white' if 'budget' in request.endpoint else 'text-gray-400 hover:bg-gray-700' }}">
                          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 20v-6M6 20v-2M18 20v-4"/><path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/><path d="M6 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/><path d="M18 16a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/></svg>
                         <span class="text-xs mt-1">Presup.</span>
                     </a>
-                    <a href="{{ url_for('savings') }}" class="flex flex-col items-center p-3 rounded-2xl {{ 'bg-blue-600 text-white' if request.endpoint == 'savings' else 'text-gray-400 hover:bg-gray-700' }}">
+                    <a href="{{ url_for('main.savings') }}" class="flex flex-col items-center p-3 rounded-2xl {{ 'bg-blue-600 text-white' if 'savings' in request.endpoint else 'text-gray-400 hover:bg-gray-700' }}">
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 2H9a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z"/><path d="M12 18h.01"/></svg>
                         <span class="text-xs mt-1">Ahorro</span>
                     </a>
-                    <a href="{{ url_for('charts') }}" class="flex flex-col items-center p-3 rounded-2xl {{ 'bg-blue-600 text-white' if request.endpoint == 'charts' else 'text-gray-400 hover:bg-gray-700' }}">
+                    <a href="{{ url_for('main.charts') }}" class="flex flex-col items-center p-3 rounded-2xl {{ 'bg-blue-600 text-white' if 'charts' in request.endpoint else 'text-gray-400 hover:bg-gray-700' }}">
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
                         <span class="text-xs mt-1">Gráficos</span>
                     </a>
                     <div class="flex-grow"></div>
-                    <a href="{{ url_for('logout') }}" class="flex flex-col items-center p-3 rounded-2xl text-gray-400 hover:bg-gray-700">
+                    <!-- CAMBIO 2: Actualizamos la ruta de logout para apuntar al blueprint 'auth' -->
+                    <a href="{{ url_for('auth.logout') }}" class="flex flex-col items-center p-3 rounded-2xl text-gray-400 hover:bg-gray-700">
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                         <span class="text-xs mt-1">Salir</span>
                     </a>
@@ -41,11 +44,12 @@
             {% endif %}
 
             <!-- Contenido Principal -->
-            <div class="flex-1 {{ 'md:ml-24' if session.user and request.endpoint not in ['landing', 'login', 'signup'] and 'onboarding' not in request.endpoint else '' }}">
+            <div class="flex-1 {{ 'md:ml-24' if session.user and request.endpoint not in ['auth.login', 'auth.signup', 'index'] and 'onboarding' not in request.endpoint else '' }}">
                 
                 {% if session.user and 'onboarding' in request.endpoint %}
                 <header class="absolute top-0 right-0 p-6">
-                    <a href="{{ url_for('logout') }}" class="text-gray-400 hover:text-white text-sm">Salir</a>
+                    <!-- CAMBIO 3: Actualizamos también este botón de salir -->
+                    <a href="{{ url_for('auth.logout') }}" class="text-gray-400 hover:text-white text-sm">Salir</a>
                 </header>
                 {% endif %}
 
@@ -53,9 +57,12 @@
                     <main>
                         {% with messages = get_flashed_messages(with_categories=true) %}
                             {% if messages %}
-                                <div class="max-w-xl mx-auto">
+                                <div class="max-w-xl mx-auto my-4">
                                 {% for category, message in messages %}
-                                    <div class="p-4 mb-4 text-sm rounded-lg {{ 'bg-green-800 text-green-200' if category == 'success' else 'bg-red-800 text-red-200' }}" role="alert">
+                                    <div class="p-4 mb-4 text-sm rounded-lg 
+                                        {% if category == 'success' %} bg-green-800 text-green-200 
+                                        {% elif category == 'danger' %} bg-red-800 text-red-200
+                                        {% else %} bg-blue-800 text-blue-200 {% endif %}" role="alert">
                                         {{ message }}
                                     </div>
                                 {% endfor %}
