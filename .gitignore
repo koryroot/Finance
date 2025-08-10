@@ -1,2 +1,12 @@
 /__pycache__
 firebase_credentials.json
+.env
+*.log
+*.tmp
+*.bak
+*.swp
+*.DS_Store
+*.vscode
+*.idea
+*.iml
+*.pyc       
