@@ -25,8 +25,9 @@
             <p><span class="font-bold text-yellow-400">Plan Gratuito:</span> Usa esta regla de 3 categorías. Para crear y personalizar más, considera nuestro plan Pro.</p>
         </div>
 
-        <form method="POST" class="mt-8">
-            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg">Entendido, ¡Siguiente!</button>
+        <!-- CAMBIO: Añadimos la acción explícita apuntando al blueprint 'main' -->
+        <form method="POST" action="{{ url_for('main.onboarding_budget') }}" class="mt-8">
+            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors">Entendido, ¡Siguiente!</button>
         </form>
     </div>
 </div>
