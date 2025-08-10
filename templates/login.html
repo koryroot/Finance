@@ -4,6 +4,7 @@
     <div class="bg-gray-800 p-8 rounded-2xl shadow-lg w-full max-w-md">
         <h2 class="text-3xl font-bold text-white text-center mb-6">Iniciar Sesión</h2>
         
+        <!-- Botón de Google: No necesita cambios en el HTML -->
         <button id="google-signin-btn" class="w-full bg-white text-gray-800 font-bold py-3 px-4 rounded-lg flex items-center justify-center space-x-2 hover:bg-gray-200 mb-6">
             <svg class="w-6 h-6" viewBox="0 0 48 48"><path fill="#4285F4" d="M24 9.5c3.9 0 6.9 1.6 9.1 3.7l6.8-6.8C35.9 2.5 30.5 0 24 0 14.9 0 7.3 5.4 3 13.2l8.4 6.5C13.2 13.2 18.2 9.5 24 9.5z"></path><path fill="#34A853" d="M46.2 25.4c0-1.7-.2-3.4-.5-5H24v9.5h12.5c-.5 3.1-2.1 5.7-4.6 7.5l7.9 6.1c4.6-4.2 7.3-10.2 7.3-17.1z"></path><path fill="#FBBC05" d="M11.4 28.2c-.5-1.5-.8-3.1-.8-4.7s.3-3.2.8-4.7L3 13.2C1.1 16.8 0 21.2 0 26.1s1.1 9.3 3 12.9l8.4-6.6z"></path><path fill="#EA4335" d="M24 48c6.5 0 11.9-2.1 15.9-5.7l-7.9-6.1c-2.1 1.4-4.8 2.3-7.9 2.3-5.8 0-10.8-3.7-12.6-8.8l-8.4 6.5C7.3 42.6 14.9 48 24 48z"></path><path fill="none" d="M0 0h48v48H0z"></path></svg>
             <span>Continuar con Google</span>
@@ -12,7 +13,9 @@
             <hr class="flex-grow border-gray-600"><span class="mx-4 text-gray-400">o</span><hr class="flex-grow border-gray-600">
         </div>
 
-        <form method="POST" action="{{ url_for('login') }}" class="space-y-6">
+        <!-- CAMBIO 1: Añadimos un ID al formulario y eliminamos el 'action' y 'method'
+             ya que serán manejados por JavaScript. -->
+        <form id="login-form" class="space-y-6">
             <div>
                 <label for="email" class="block text-sm font-medium text-gray-300">Correo Electrónico</label>
                 <input type="email" name="email" id="email" class="mt-1 w-full p-3 bg-gray-700 border-gray-600 rounded-lg text-white" required>
@@ -26,47 +29,94 @@
             </div>
         </form>
         <p class="text-center text-gray-400 mt-6">
-            ¿No tienes una cuenta? <a href="{{ url_for('signup') }}" class="text-blue-400 hover:underline">Regístrate aquí</a>
+            <!-- CAMBIO 2: Actualizamos la ruta para que apunte al blueprint 'auth' -->
+            ¿No tienes una cuenta? <a href="{{ url_for('auth.signup') }}" class="text-blue-400 hover:underline">Regístrate aquí</a>
         </p>
     </div>
 </div>
 
+<!-- CAMBIO 3: Unificamos y limpiamos todo el JavaScript en un solo bloque moderno -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+  // Importamos las funciones necesarias de la versión 9 del SDK de Firebase
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
 
-  const firebaseConfig = {{ firebase_config | tojson }};
+  // Esta configuración es para el cliente (navegador). Es segura de exponer.
+  const firebaseConfig = {
+    apiKey: "AIzaSyC_RbyMkEhwK3T5_Hpl05mJnQQYCuunBj4", // Reemplaza con tus valores si son diferentes
+    authDomain: "billetera-inteligente-app.firebaseapp.com",
+    projectId: "billetera-inteligente-app",
+    storageBucket: "billetera-inteligente-app.appspot.com", // Corregido a .appspot.com
+    messagingSenderId: "818140911365",
+    appId: "1:818140911365:web:1f620869505658fa68896c"
+  };
+
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
 
+  // --- LÓGICA COMÚN PARA ENVIAR TOKEN AL BACKEND ---
+  function sendTokenToBackend(idToken) {
+    fetch("{{ url_for('auth.session_login') }}", {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ idToken: idToken })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        // Si el backend crea la sesión, redirigimos.
+        // Verificamos si es un usuario nuevo para mandarlo al onboarding.
+        if (data.new_user) {
+            window.location.href = "{{ url_for('main.onboarding_welcome') }}";
+        } else {
+            window.location.href = "{{ url_for('main.dashboard') }}";
+        }
+      } else {
+        alert('Error del servidor: ' + data.message);
+      }
+    })
+    .catch(error => {
+        console.error('Error al contactar el servidor:', error);
+        alert('No se pudo conectar con el servidor.');
+    });
+  }
+
+  // --- MANEJADOR PARA LOGIN CON GOOGLE ---
   const googleBtn = document.getElementById('google-signin-btn');
   googleBtn.addEventListener('click', () => {
+    const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider)
       .then((result) => {
-        const user = result.user;
-        user.getIdToken().then((idToken) => {
-          fetch('/google-signin', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ idToken: idToken })
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.status === 'success') {
-              if (data.new_user) {
-                window.location.href = "{{ url_for('onboarding_welcome') }}";
-              } else {
-                window.location.href = "{{ url_for('dashboard') }}";
-              }
-            } else {
-              alert('Hubo un error al iniciar sesión con Google.');
-            }
-          });
-        });
-      }).catch((error) => {
+        return result.user.getIdToken();
+      })
+      .then((idToken) => {
+        sendTokenToBackend(idToken);
+      })
+      .catch((error) => {
         console.error("Error con Google:", error);
+        alert("Error al iniciar sesión con Google: " + error.message);
+      });
+  });
+
+  // --- MANEJADOR PARA LOGIN CON EMAIL Y CONTRASEÑA ---
+  const loginForm = document.getElementById('login-form');
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault(); // Prevenimos el envío tradicional del formulario
+    const email = loginForm.email.value;
+    const password = loginForm.password.value;
+
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        return userCredential.user.getIdToken();
+      })
+      .then((idToken) => {
+        sendTokenToBackend(idToken);
+      })
+      .catch((error) => {
+        console.error("Error de inicio de sesión:", error);
+        alert("Error: Correo o contraseña incorrectos.");
       });
   });
 </script>
 {% endblock %}
+<!-- --- FIN DEL ARCHIVO login.html --- -->
