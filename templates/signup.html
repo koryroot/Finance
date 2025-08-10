@@ -12,7 +12,7 @@
             <hr class="flex-grow border-gray-600"><span class="mx-4 text-gray-400">o</span><hr class="flex-grow border-gray-600">
         </div>
 
-        <form method="POST" action="{{ url_for('signup') }}" class="space-y-6">
+        <form method="POST" action="{{ url_for('auth.signup') }}" class="space-y-6">
             <div>
                 <label for="email" class="block text-sm font-medium text-gray-300">Correo Electrónico</label>
                 <input type="email" name="email" id="email" class="mt-1 w-full p-3 bg-gray-700 border-gray-600 rounded-lg text-white" required>
@@ -22,52 +22,69 @@
                 <input type="password" name="password" id="password" class="mt-1 w-full p-3 bg-gray-700 border-gray-600 rounded-lg text-white" required>
             </div>
             <div class="pt-4">
-                <button type="submit" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700">Registrarse</button>
+                <button type="submit" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition-colors">Registrarse</button>
             </div>
         </form>
         <p class="text-center text-gray-400 mt-6">
-            ¿Ya tienes una cuenta? <a href="{{ url_for('login') }}" class="text-blue-400 hover:underline">Inicia sesión</a>
+            ¿Ya tienes una cuenta? <a href="{{ url_for('auth.login') }}" class="text-blue-400 hover:underline">Inicia sesión</a>
         </p>
     </div>
 </div>
 
+<!-- CAMBIO: Unificamos el script para que sea más limpio y use las rutas correctas -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
 
-  const firebaseConfig = {{ firebase_config | tojson }};
+  // Usamos la configuración de cliente directamente en el script.
+  const firebaseConfig = {
+    apiKey: "AIzaSyC_RbyMkEhwK3T5_Hpl05mJnQQYCuunBj4", // Reemplaza con tus valores si son diferentes
+    authDomain: "billetera-inteligente-app.firebaseapp.com",
+    projectId: "billetera-inteligente-app",
+    storageBucket: "billetera-inteligente-app.appspot.com",
+    messagingSenderId: "818140911365",
+    appId: "1:818140911365:web:1f620869505658fa68896c"
+  };
+
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
 
+  // --- MANEJADOR PARA REGISTRO CON GOOGLE ---
   const googleBtn = document.getElementById('google-signin-btn');
   googleBtn.addEventListener('click', () => {
+    const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider)
       .then((result) => {
-        const user = result.user;
-        user.getIdToken().then((idToken) => {
-          fetch('/google-signin', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ idToken: idToken })
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.status === 'success') {
-              if (data.new_user) {
-                window.location.href = "{{ url_for('onboarding_welcome') }}";
-              } else {
-                window.location.href = "{{ url_for('dashboard') }}";
-              }
-            } else {
-              alert('Hubo un error al registrarse con Google.');
-            }
-          });
+        // Si el popup de Google tiene éxito, obtenemos el token de seguridad del usuario.
+        return result.user.getIdToken();
+      })
+      .then((idToken) => {
+        // Enviamos ese token a nuestra ruta segura del backend.
+        // CAMBIO 1: Apuntamos el fetch a la ruta 'session_login' del blueprint 'auth'.
+        return fetch("{{ url_for('auth.session_login') }}", {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ idToken: idToken })
         });
-      }).catch((error) => {
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          // Si el backend crea la sesión, redirigimos.
+          // CAMBIO 2: Apuntamos a las rutas del blueprint 'main'.
+          if (data.new_user) {
+            window.location.href = "{{ url_for('main.onboarding_welcome') }}";
+          } else {
+            window.location.href = "{{ url_for('main.dashboard') }}";
+          }
+        } else {
+          alert('Hubo un error al registrarse con Google: ' + data.message);
+        }
+      })
+      .catch((error) => {
         console.error("Error con Google:", error);
+        alert("Error al intentar registrarse con Google: " + error.message);
       });
   });
 </script>
 {% endblock %}
-
