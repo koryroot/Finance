@@ -1,30 +1,127 @@
 {% extends "layout.html" %}
 {% block content %}
-<div class="min-h-screen flex items-center justify-center">
-    <div class="bg-gray-800 p-8 rounded-2xl shadow-lg w-full max-w-md">
-        <p class="text-blue-400 font-bold">Paso 2 de 4</p>
-        <h2 class="text-3xl font-bold text-white mt-2 mb-6">Tu Ingreso Principal</h2>
-        <p class="text-gray-400 mb-6">Para empezar, dinos cuál es tu principal fuente de ingreso. Esto nos ayudará a calcular tu presupuesto.</p>
+<div class="min-h-screen flex items-center justify-center py-12">
+    <div class="bg-gray-800 p-8 rounded-2xl shadow-lg w-full max-w-lg">
+        <p class="text-blue-400 font-bold text-center">Paso 2 de 4</p>
+        <h2 class="text-3xl font-bold text-white mt-2 mb-6 text-center">Tus Ingresos</h2>
+        <p class="text-gray-400 mb-8 text-center">Añade o edita tus fuentes de ingreso. Esto es clave para crear un presupuesto preciso.</p>
         
         <form method="POST" action="{{ url_for('main.onboarding_income') }}" class="space-y-6">
-            <div>
-                <label for="source" class="block text-sm font-medium text-gray-300">Fuente de Ingreso (ej. Salario, Negocio)</label>
-                <input type="text" name="source" id="source" class="mt-1 w-full p-3 bg-gray-700 border-gray-600 rounded-lg text-white" required>
+            <div id="income-sources" class="space-y-6">
+                <!-- Bucle de Jinja2 para mostrar los ingresos que ya existen -->
+                {% for income in incomes %}
+                <div class="income-entry bg-gray-700/50 p-4 rounded-lg relative">
+                    <button type="button" class="remove-btn absolute top-2 right-2 text-gray-500 hover:text-white text-2xl font-bold">&times;</button>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="source-{{ loop.index0 }}" class="block text-sm font-medium text-gray-300">Fuente de Ingreso</label>
+                            <input type="text" name="source-{{ loop.index0 }}" id="source-{{ loop.index0 }}" value="{{ income.source }}" class="mt-1 w-full p-2 bg-gray-900/70 border-gray-600 rounded-lg text-white" required>
+                        </div>
+                        <div>
+                            <label for="amount-{{ loop.index0 }}" class="block text-sm font-medium text-gray-300">Monto ({{ user.currency or 'DOP' }})</label>
+                            <input type="number" step="0.01" name="amount-{{ loop.index0 }}" id="amount-{{ loop.index0 }}" value="{{ income.amount }}" class="mt-1 w-full p-2 bg-gray-900/70 border-gray-600 rounded-lg text-white" required>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-300">Frecuencia</label>
+                        <div class="flex items-center space-x-4 mt-1">
+                            <label class="flex items-center text-sm"><input type="radio" name="frequency-{{ loop.index0 }}" value="quincenal" {% if income.frequency == 'quincenal' %}checked{% endif %} class="mr-2">Quincenal</label>
+                            <label class="flex items-center text-sm"><input type="radio" name="frequency-{{ loop.index0 }}" value="mensual" {% if income.frequency == 'mensual' %}checked{% endif %} class="mr-2">Mensual</label>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <!-- Si no hay ingresos guardados, se muestra un campo vacío por defecto -->
+                <div class="income-entry bg-gray-700/50 p-4 rounded-lg">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="source-0" class="block text-sm font-medium text-gray-300">Fuente de Ingreso</label>
+                            <input type="text" name="source-0" id="source-0" class="mt-1 w-full p-2 bg-gray-900/70 border-gray-600 rounded-lg text-white" required placeholder="Ej. Salario">
+                        </div>
+                        <div>
+                            <label for="amount-0" class="block text-sm font-medium text-gray-300">Monto ({{ user.currency or 'DOP' }})</label>
+                            <input type="number" step="0.01" name="amount-0" id="amount-0" class="mt-1 w-full p-2 bg-gray-900/70 border-gray-600 rounded-lg text-white" required placeholder="25000">
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-300">Frecuencia</label>
+                        <div class="flex items-center space-x-4 mt-1">
+                            <label class="flex items-center text-sm"><input type="radio" name="frequency-0" value="quincenal" class="mr-2">Quincenal</label>
+                            <label class="flex items-center text-sm"><input type="radio" name="frequency-0" value="mensual" checked class="mr-2">Mensual</label>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
-            <div>
-                <!-- Nota: Más adelante podríamos mostrar aquí la moneda que el usuario eligió -->
-                <label for="amount" class="block text-sm font-medium text-gray-300">Monto Mensual</label>
-                <input type="number" step="0.01" name="amount" id="amount" class="mt-1 w-full p-3 bg-gray-700 border-gray-600 rounded-lg text-white" required>
-            </div>
+
+            <button type="button" id="add-income-btn" class="w-full text-sm bg-gray-700 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                <span>Agregar otro ingreso</span>
+            </button>
+
             <div class="pt-4">
                 <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors">Siguiente</button>
             </div>
         </form>
 
-        <!-- CAMBIO 2: Añadimos el enlace para volver al paso anterior (selección de moneda) -->
         <div class="text-center mt-4">
             <a href="{{ url_for('main.onboarding_currency') }}" class="text-gray-400 hover:text-white text-sm">Atrás</a>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const userCurrency = "{{ user.currency or 'DOP' }}";
+    const addBtn = document.getElementById('add-income-btn');
+    const container = document.getElementById('income-sources');
+    
+    // El contador empieza desde el número de ingresos que ya cargó la página.
+    let incomeCount = {{ incomes|length }};
+
+    // Función para añadir la lógica de borrado a un botón
+    function addRemoveFunctionality(element) {
+        const removeBtn = element.querySelector('.remove-btn');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', function() {
+                this.parentElement.remove();
+            });
+        }
+    }
+
+    // Añadir funcionalidad de borrado a los elementos que ya existen en la página.
+    document.querySelectorAll('.income-entry').forEach(entry => {
+        addRemoveFunctionality(entry);
+    });
+
+    // Lógica para añadir un nuevo campo de ingreso
+    addBtn.addEventListener('click', () => {
+        const newEntry = document.createElement('div');
+        newEntry.classList.add('income-entry', 'bg-gray-700/50', 'p-4', 'rounded-lg', 'relative');
+        newEntry.innerHTML = `
+            <button type="button" class="remove-btn absolute top-2 right-2 text-gray-500 hover:text-white text-2xl font-bold">&times;</button>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="source-${incomeCount}" class="block text-sm font-medium text-gray-300">Fuente de Ingreso</label>
+                    <input type="text" name="source-${incomeCount}" id="source-${incomeCount}" class="mt-1 w-full p-2 bg-gray-900/70 border-gray-600 rounded-lg text-white" required placeholder="Ej. Freelance">
+                </div>
+                <div>
+                    <label for="amount-${incomeCount}" class="block text-sm font-medium text-gray-300">Monto (${userCurrency})</label>
+                    <input type="number" step="0.01" name="amount-${incomeCount}" id="amount-${incomeCount}" class="mt-1 w-full p-2 bg-gray-900/70 border-gray-600 rounded-lg text-white" required placeholder="5000">
+                </div>
+            </div>
+            <div class="mt-4">
+                <label class="block text-sm font-medium text-gray-300">Frecuencia</label>
+                <div class="flex items-center space-x-4 mt-1">
+                    <label class="flex items-center text-sm"><input type="radio" name="frequency-${incomeCount}" value="quincenal" class="mr-2">Quincenal</label>
+                    <label class="flex items-center text-sm"><input type="radio" name="frequency-${incomeCount}" value="mensual" checked class="mr-2">Mensual</label>
+                </div>
+            </div>
+        `;
+        container.appendChild(newEntry);
+        addRemoveFunctionality(newEntry);
+        incomeCount++;
+    });
+});
+</script>
 {% endblock %}

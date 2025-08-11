@@ -46,14 +46,52 @@ def onboarding_welcome():
 def onboarding_income():
     user_id = session['user']
     if request.method == 'POST':
-        source = request.form.get('source')
-        amount = request.form.get('amount')
-        date = datetime.now().strftime('%Y-%m-%d')
-        db.collection('users').document(user_id).collection('income').add({
-            'source': source, 'amount': float(amount), 'date': date
-        })
-        return redirect(url_for('main.onboarding_budget'))
-    return render_template('onboarding_income.html')
+        try:
+            # LÓGICA DE ACTUALIZACIÓN: Borrar ingresos antiguos antes de guardar los nuevos.
+            # Esto maneja ediciones, adiciones y eliminaciones en un solo paso.
+            income_ref = db.collection('users').document(user_id).collection('income')
+            for doc in income_ref.stream():
+                doc.reference.delete()
+
+            # Procesar y guardar los ingresos enviados desde el formulario.
+            income_count = 0
+            while f'source-{income_count}' in request.form:
+                source = request.form.get(f'source-{income_count}')
+                amount = request.form.get(f'amount-{income_count}')
+                frequency = request.form.get(f'frequency-{income_count}')
+
+                if source and amount and frequency:
+                    income_ref.add({
+                        'source': source, 
+                        'amount': float(amount), 
+                        'frequency': frequency,
+                        'date': datetime.now().strftime('%Y-%m-%d')
+                    })
+                income_count += 1
+            
+            if income_count > 0:
+                return redirect(url_for('main.onboarding_budget'))
+            else:
+                flash("Debes añadir al menos una fuente de ingreso.", "danger")
+
+        except Exception as e:
+            flash(f"Ocurrió un error al guardar tus ingresos: {e}", "danger")
+
+    # LÓGICA DE CARGA: Cuando el usuario visita la página, le mostramos sus datos.
+    try:
+        user_doc = db.collection('users').document(user_id).get()
+        user_data = user_doc.to_dict() if user_doc.exists else {}
+
+        # Buscamos los ingresos que ya existen en la base de datos.
+        incomes_stream = db.collection('users').document(user_id).collection('income').stream()
+        existing_incomes = [doc.to_dict() for doc in incomes_stream]
+        
+        # Enviamos los datos del usuario y sus ingresos a la plantilla.
+        return render_template('onboarding_income.html', user=user_data, incomes=existing_incomes)
+    except Exception as e:
+        flash(f"Error al cargar la página: {e}", "danger")
+        return redirect(url_for('main.onboarding_currency'))
+
 
 @main_bp.route('/onboarding/budget', methods=['GET', 'POST'])
 @login_required
