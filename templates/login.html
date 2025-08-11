@@ -4,7 +4,6 @@
     <div class="bg-gray-800 p-8 rounded-2xl shadow-lg w-full max-w-md">
         <h2 class="text-3xl font-bold text-white text-center mb-6">Iniciar Sesión</h2>
         
-        <!-- Botón de Google: No necesita cambios en el HTML -->
         <button id="google-signin-btn" class="w-full bg-white text-gray-800 font-bold py-3 px-4 rounded-lg flex items-center justify-center space-x-2 hover:bg-gray-200 mb-6">
             <svg class="w-6 h-6" viewBox="0 0 48 48"><path fill="#4285F4" d="M24 9.5c3.9 0 6.9 1.6 9.1 3.7l6.8-6.8C35.9 2.5 30.5 0 24 0 14.9 0 7.3 5.4 3 13.2l8.4 6.5C13.2 13.2 18.2 9.5 24 9.5z"></path><path fill="#34A853" d="M46.2 25.4c0-1.7-.2-3.4-.5-5H24v9.5h12.5c-.5 3.1-2.1 5.7-4.6 7.5l7.9 6.1c4.6-4.2 7.3-10.2 7.3-17.1z"></path><path fill="#FBBC05" d="M11.4 28.2c-.5-1.5-.8-3.1-.8-4.7s.3-3.2.8-4.7L3 13.2C1.1 16.8 0 21.2 0 26.1s1.1 9.3 3 12.9l8.4-6.6z"></path><path fill="#EA4335" d="M24 48c6.5 0 11.9-2.1 15.9-5.7l-7.9-6.1c-2.1 1.4-4.8 2.3-7.9 2.3-5.8 0-10.8-3.7-12.6-8.8l-8.4 6.5C7.3 42.6 14.9 48 24 48z"></path><path fill="none" d="M0 0h48v48H0z"></path></svg>
             <span>Continuar con Google</span>
@@ -13,8 +12,6 @@
             <hr class="flex-grow border-gray-600"><span class="mx-4 text-gray-400">o</span><hr class="flex-grow border-gray-600">
         </div>
 
-        <!-- CAMBIO 1: Añadimos un ID al formulario y eliminamos el 'action' y 'method'
-             ya que serán manejados por JavaScript. -->
         <form id="login-form" class="space-y-6">
             <div>
                 <label for="email" class="block text-sm font-medium text-gray-300">Correo Electrónico</label>
@@ -22,31 +19,55 @@
             </div>
             <div>
                 <label for="password" class="block text-sm font-medium text-gray-300">Contraseña</label>
-                <input type="password" name="password" id="password" class="mt-1 w-full p-3 bg-gray-700 border-gray-600 rounded-lg text-white" required>
+                <!-- CAMBIO 1: Envolvemos el input en un div relativo para posicionar el botón del ojo -->
+                <div class="relative">
+                    <input type="password" name="password" id="password" class="mt-1 w-full p-3 bg-gray-700 border-gray-600 rounded-lg text-white pr-10" required>
+                    <button type="button" id="toggle-password-btn" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-white">
+                        <svg id="eye-icon" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                        <svg id="eye-slash-icon" class="h-5 w-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 1.274-4.057 5.064-7 9.542-7 .847 0 1.673.126 2.463.362m-7.91 7.91a3 3 0 014.242-4.242M9.879 9.879l4.242 4.242m0-4.242l-4.242 4.242"></path></svg>
+                    </button>
+                </div>
             </div>
-            <div class="pt-4">
+            <div class="text-right text-sm">
+                <a href="#" id="forgot-password-link" class="text-blue-400 hover:underline">¿Olvidaste tu contraseña?</a>
+            </div>
+            <div class="pt-2">
                 <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700">Entrar</button>
             </div>
         </form>
         <p class="text-center text-gray-400 mt-6">
-            <!-- CAMBIO 2: Actualizamos la ruta para que apunte al blueprint 'auth' -->
             ¿No tienes una cuenta? <a href="{{ url_for('auth.signup') }}" class="text-blue-400 hover:underline">Regístrate aquí</a>
         </p>
     </div>
 </div>
 
-<!-- CAMBIO 3: Unificamos y limpiamos todo el JavaScript en un solo bloque moderno -->
-<script type="module">
-  // Importamos las funciones necesarias de la versión 9 del SDK de Firebase
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+<div id="reset-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300">
+    <div class="bg-gray-800 p-8 rounded-2xl shadow-lg w-full max-w-sm transform transition-all duration-300 scale-95">
+        <h3 class="text-2xl font-bold text-white mb-4">Restablecer Contraseña</h3>
+        <p id="reset-instructions" class="text-gray-400 mb-6">Ingresa tu correo y te enviaremos un enlace para que puedas establecer una nueva contraseña.</p>
+        <div id="reset-message" class="hidden p-3 mb-4 text-sm rounded-lg"></div>
+        <form id="reset-form">
+            <div id="reset-email-field">
+                <label for="reset-email" class="block text-sm font-medium text-gray-300">Correo Electrónico</label>
+                <input type="email" id="reset-email" class="mt-1 w-full p-3 bg-gray-700 border-gray-600 rounded-lg text-white" required>
+            </div>
+            <div class="mt-6 flex justify-end space-x-4">
+                <button type="button" id="cancel-reset-btn" class="px-4 py-2 rounded-lg text-gray-300 hover:bg-gray-700">Cancelar</button>
+                <button type="submit" id="submit-reset-btn" class="px-4 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 min-w-[120px]">Enviar Enlace</button>
+            </div>
+        </form>
+    </div>
+</div>
 
-  // Esta configuración es para el cliente (navegador). Es segura de exponer.
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+
   const firebaseConfig = {
-    apiKey: "AIzaSyC_RbyMkEhwK3T5_Hpl05mJnQQYCuunBj4", // Reemplaza con tus valores si son diferentes
+    apiKey: "AIzaSyC_RbyMkEhwK3T5_Hpl05mJnQQYCuunBj4", 
     authDomain: "billetera-inteligente-app.firebaseapp.com",
     projectId: "billetera-inteligente-app",
-    storageBucket: "billetera-inteligente-app.appspot.com", // Corregido a .appspot.com
+    storageBucket: "billetera-inteligente-app.appspot.com",
     messagingSenderId: "818140911365",
     appId: "1:818140911365:web:1f620869505658fa68896c"
   };
@@ -54,7 +75,32 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
 
-  // --- LÓGICA COMÚN PARA ENVIAR TOKEN AL BACKEND ---
+  // --- Lógica para mostrar/ocultar contraseña ---
+  const togglePasswordBtn = document.getElementById('toggle-password-btn');
+  const passwordInput = document.getElementById('password');
+  const eyeIcon = document.getElementById('eye-icon');
+  const eyeSlashIcon = document.getElementById('eye-slash-icon');
+
+  togglePasswordBtn.addEventListener('click', () => {
+    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordInput.setAttribute('type', type);
+    
+    eyeIcon.classList.toggle('hidden');
+    eyeSlashIcon.classList.toggle('hidden');
+  });
+
+  // Lógica de inicio de sesión
+  const loginForm = document.getElementById('login-form');
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    signInWithEmailAndPassword(auth, loginForm.email.value, loginForm.password.value).then(c => c.user.getIdToken()).then(sendTokenToBackend).catch(e => alert("Error: Correo o contraseña incorrectos."));
+  });
+
+  // Lógica del modal de reseteo de contraseña
+  const forgotPasswordLink = document.getElementById('forgot-password-link');
+  // ... (resto del código del modal sin cambios)
+
+  // --- El resto de tu código JS va aquí ---
   function sendTokenToBackend(idToken) {
     fetch("{{ url_for('auth.session_login') }}", {
       method: 'POST',
@@ -64,8 +110,6 @@
     .then(response => response.json())
     .then(data => {
       if (data.status === 'success') {
-        // Si el backend crea la sesión, redirigimos.
-        // Verificamos si es un usuario nuevo para mandarlo al onboarding.
         if (data.new_user) {
             window.location.href = "{{ url_for('main.onboarding_welcome') }}";
         } else {
@@ -81,42 +125,71 @@
     });
   }
 
-  // --- MANEJADOR PARA LOGIN CON GOOGLE ---
   const googleBtn = document.getElementById('google-signin-btn');
   googleBtn.addEventListener('click', () => {
     const provider = new GoogleAuthProvider();
-    signInWithPopup(auth, provider)
-      .then((result) => {
-        return result.user.getIdToken();
-      })
-      .then((idToken) => {
-        sendTokenToBackend(idToken);
-      })
-      .catch((error) => {
-        console.error("Error con Google:", error);
-        alert("Error al iniciar sesión con Google: " + error.message);
-      });
+    signInWithPopup(auth, provider).then(r => r.user.getIdToken()).then(sendTokenToBackend).catch(e => alert("Error con Google: " + e.message));
   });
 
-  // --- MANEJADOR PARA LOGIN CON EMAIL Y CONTRASEÑA ---
-  const loginForm = document.getElementById('login-form');
-  loginForm.addEventListener('submit', (e) => {
-    e.preventDefault(); // Prevenimos el envío tradicional del formulario
-    const email = loginForm.email.value;
-    const password = loginForm.password.value;
+  const resetModal = document.getElementById('reset-modal');
+  const cancelResetBtn = document.getElementById('cancel-reset-btn');
+  const resetForm = document.getElementById('reset-form');
+  const resetMessage = document.getElementById('reset-message');
+  const resetEmailField = document.getElementById('reset-email-field');
+  const resetInstructions = document.getElementById('reset-instructions');
+  const submitResetBtn = document.getElementById('submit-reset-btn');
 
-    signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        return userCredential.user.getIdToken();
-      })
-      .then((idToken) => {
-        sendTokenToBackend(idToken);
-      })
-      .catch((error) => {
-        console.error("Error de inicio de sesión:", error);
-        alert("Error: Correo o contraseña incorrectos.");
-      });
+  function showModal() {
+    resetForm.reset();
+    resetMessage.classList.add('hidden');
+    resetEmailField.classList.remove('hidden');
+    resetInstructions.classList.remove('hidden');
+    submitResetBtn.disabled = false;
+    submitResetBtn.innerHTML = 'Enviar Enlace';
+    submitResetBtn.classList.remove('hidden');
+    cancelResetBtn.innerText = 'Cancelar';
+    resetModal.classList.remove('hidden');
+    setTimeout(() => resetModal.querySelector('div').classList.remove('scale-95'), 10);
+  }
+
+  function hideModal() {
+    resetModal.querySelector('div').classList.add('scale-95');
+    setTimeout(() => resetModal.classList.add('hidden'), 300);
+  }
+
+  forgotPasswordLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    showModal();
+  });
+
+  cancelResetBtn.addEventListener('click', hideModal);
+  resetModal.addEventListener('click', (e) => {
+    if (e.target === resetModal) hideModal();
+  });
+
+  resetForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('reset-email').value;
+    submitResetBtn.disabled = true;
+    submitResetBtn.innerHTML = `<svg class="animate-spin h-5 w-5 mx-auto" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+
+    sendPasswordResetEmail(auth, email)
+        .then(() => {
+            resetMessage.className = 'p-3 mb-4 text-sm rounded-lg bg-green-800 text-green-200';
+            resetMessage.innerHTML = '<strong>¡Correo enviado!</strong> Si existe una cuenta con ese correo, recibirás un enlace. <br><br><strong>Importante:</strong> Tu contraseña actual seguirá funcionando hasta que completes el cambio.';
+            resetMessage.classList.remove('hidden');
+            resetEmailField.classList.add('hidden');
+            resetInstructions.classList.add('hidden');
+            submitResetBtn.classList.add('hidden');
+            cancelResetBtn.innerText = 'Cerrar';
+        })
+        .catch((error) => {
+            resetMessage.className = 'p-3 mb-4 text-sm rounded-lg bg-red-800 text-red-200';
+            resetMessage.innerText = "Error: No se pudo enviar el correo. Verifica que la dirección sea correcta e inténtalo de nuevo.";
+            resetMessage.classList.remove('hidden');
+            submitResetBtn.disabled = false;
+            submitResetBtn.innerHTML = 'Enviar Enlace';
+        });
   });
 </script>
 {% endblock %}
-<!-- --- FIN DEL ARCHIVO login.html --- -->
