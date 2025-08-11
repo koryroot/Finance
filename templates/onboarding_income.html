@@ -6,20 +6,25 @@
         <h2 class="text-3xl font-bold text-white mt-2 mb-6">Tu Ingreso Principal</h2>
         <p class="text-gray-400 mb-6">Para empezar, dinos cuál es tu principal fuente de ingreso. Esto nos ayudará a calcular tu presupuesto.</p>
         
-        <!-- CAMBIO: Añadimos la acción explícita apuntando al blueprint 'main' -->
         <form method="POST" action="{{ url_for('main.onboarding_income') }}" class="space-y-6">
             <div>
                 <label for="source" class="block text-sm font-medium text-gray-300">Fuente de Ingreso (ej. Salario, Negocio)</label>
                 <input type="text" name="source" id="source" class="mt-1 w-full p-3 bg-gray-700 border-gray-600 rounded-lg text-white" required>
             </div>
             <div>
-                <label for="amount" class="block text-sm font-medium text-gray-300">Monto Mensual (DOP)</label>
+                <!-- Nota: Más adelante podríamos mostrar aquí la moneda que el usuario eligió -->
+                <label for="amount" class="block text-sm font-medium text-gray-300">Monto Mensual</label>
                 <input type="number" step="0.01" name="amount" id="amount" class="mt-1 w-full p-3 bg-gray-700 border-gray-600 rounded-lg text-white" required>
             </div>
             <div class="pt-4">
                 <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors">Siguiente</button>
             </div>
         </form>
+
+        <!-- CAMBIO 2: Añadimos el enlace para volver al paso anterior (selección de moneda) -->
+        <div class="text-center mt-4">
+            <a href="{{ url_for('main.onboarding_currency') }}" class="text-gray-400 hover:text-white text-sm">Atrás</a>
+        </div>
     </div>
 </div>
 {% endblock %}
