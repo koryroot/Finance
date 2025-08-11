@@ -92,6 +92,20 @@ def skip_savings_goal():
     flash('Puedes configurar tu meta de ahorro más tarde. ¡Bienvenido/a!', 'success')
     return redirect(url_for('main.dashboard'))
 
+@main_bp.route('/onboarding/currency', methods=['GET', 'POST'])
+@login_required
+def onboarding_currency():
+    user_id = session['user']
+    if request.method == 'POST':
+        currency = request.form.get('currency')
+        if currency:
+            db.collection('users').document(user_id).update({'currency': currency})
+            # Una vez guardada la moneda, lo enviamos al siguiente paso que era el de ingresos.
+            return redirect(url_for('main.onboarding_income'))
+        else:
+            flash("Por favor, selecciona una moneda.", "danger")
+
+    return render_template('onboarding_currency.html')
 
 # --- RUTAS PRINCIPALES (PROTEGIDAS) ---
 @main_bp.route('/dashboard')

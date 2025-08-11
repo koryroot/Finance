@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="min-h-screen flex items-center justify-center">
+    <div class="bg-gray-800 p-8 rounded-2xl shadow-lg w-full max-w-md text-center">
+        <p class="text-blue-400 font-bold">Paso 1 de 4</p>
+        <h2 class="text-3xl font-bold text-white mt-2 mb-6">Elige tu Moneda</h2>
+        <p class="text-gray-400 mb-6">Selecciona la moneda principal que usarás para tus presupuestos y transacciones.</p>
+        
+        <form method="POST" action="{{ url_for('main.onboarding_currency') }}" class="space-y-6">
+            <div>
+                <label for="currency" class="block text-sm font-medium text-gray-300 text-left">Moneda</label>
+                <select name="currency" id="currency" class="mt-1 w-full p-3 bg-gray-700 border-gray-600 rounded-lg text-white" required>
+                    <option value="USD">USD - Dólar Estadounidense</option>
+                    <option value="DOP">DOP - Peso Dominicano</option>
+                    <option value="EUR">EUR - Euro</option>
+                    <option value="MXN">MXN - Peso Mexicano</option>
+                    <option value="COP">COP - Peso Colombiano</option>
+                    <option value="ARS">ARS - Peso Argentino</option>
+                    <!-- Puedes añadir más monedas aquí -->
+                </select>
+            </div>
+            <div class="pt-4">
+                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors">Siguiente</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
