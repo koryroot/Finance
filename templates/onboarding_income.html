@@ -25,6 +25,7 @@
                     <div class="mt-4">
                         <label class="block text-sm font-medium text-gray-300">Frecuencia</label>
                         <div class="flex items-center space-x-4 mt-1">
+                            <!-- CAMBIO 1: Hacemos el 'name' del radio button único para cada grupo -->
                             <label class="flex items-center text-sm"><input type="radio" name="frequency-{{ loop.index0 }}" value="quincenal" {% if income.frequency == 'quincenal' %}checked{% endif %} class="mr-2">Quincenal</label>
                             <label class="flex items-center text-sm"><input type="radio" name="frequency-{{ loop.index0 }}" value="mensual" {% if income.frequency == 'mensual' %}checked{% endif %} class="mr-2">Mensual</label>
                         </div>
@@ -46,6 +47,7 @@
                     <div class="mt-4">
                         <label class="block text-sm font-medium text-gray-300">Frecuencia</label>
                         <div class="flex items-center space-x-4 mt-1">
+                            <!-- CAMBIO 2: Aseguramos que el primer campo también tenga un 'name' único -->
                             <label class="flex items-center text-sm"><input type="radio" name="frequency-0" value="quincenal" class="mr-2">Quincenal</label>
                             <label class="flex items-center text-sm"><input type="radio" name="frequency-0" value="mensual" checked class="mr-2">Mensual</label>
                         </div>
@@ -76,10 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const addBtn = document.getElementById('add-income-btn');
     const container = document.getElementById('income-sources');
     
-    // El contador empieza desde el número de ingresos que ya cargó la página.
     let incomeCount = {{ incomes|length }};
 
-    // Función para añadir la lógica de borrado a un botón
     function addRemoveFunctionality(element) {
         const removeBtn = element.querySelector('.remove-btn');
         if (removeBtn) {
@@ -89,12 +89,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Añadir funcionalidad de borrado a los elementos que ya existen en la página.
     document.querySelectorAll('.income-entry').forEach(entry => {
         addRemoveFunctionality(entry);
     });
 
-    // Lógica para añadir un nuevo campo de ingreso
     addBtn.addEventListener('click', () => {
         const newEntry = document.createElement('div');
         newEntry.classList.add('income-entry', 'bg-gray-700/50', 'p-4', 'rounded-lg', 'relative');
@@ -113,6 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="mt-4">
                 <label class="block text-sm font-medium text-gray-300">Frecuencia</label>
                 <div class="flex items-center space-x-4 mt-1">
+                    <!-- CAMBIO 3: El JavaScript ahora también crea radio buttons con 'name' únicos -->
                     <label class="flex items-center text-sm"><input type="radio" name="frequency-${incomeCount}" value="quincenal" class="mr-2">Quincenal</label>
                     <label class="flex items-center text-sm"><input type="radio" name="frequency-${incomeCount}" value="mensual" checked class="mr-2">Mensual</label>
                 </div>
