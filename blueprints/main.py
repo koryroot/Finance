@@ -41,52 +41,80 @@ def onboarding_required(f):
 def onboarding_welcome():
     return render_template('onboarding_welcome.html')
 
+
 @main_bp.route('/onboarding/income', methods=['GET', 'POST'])
 @login_required
 def onboarding_income():
     user_id = session['user']
     if request.method == 'POST':
         try:
-            # LÓGICA DE ACTUALIZACIÓN: Borrar ingresos antiguos antes de guardar los nuevos.
-            # Esto maneja ediciones, adiciones y eliminaciones en un solo paso.
+            # --- INICIO DE LA NUEVA LÓGICA DE PROCESAMIENTO ---
+            incomes_data = {}
+            for key, value in request.form.items():
+                # Agrupamos los datos por su índice (ej. 'source-0', 'amount-0' -> índice 0)
+                if '-' in key:
+                    field, index = key.rsplit('-', 1)
+                    if index.isdigit():
+                        index = int(index)
+                        if index not in incomes_data:
+                            incomes_data[index] = {}
+                        incomes_data[index][field] = value
+
+            incomes_to_save = []
+            # Validamos cada grupo de ingresos recolectado
+            for index in sorted(incomes_data.keys()):
+                data = incomes_data[index]
+                source = data.get('source')
+                amount_str = data.get('amount')
+                frequency = data.get('frequency')
+
+                if not (source and amount_str and frequency):
+                    continue # Ignorar entradas incompletas
+
+                try:
+                    amount = float(amount_str)
+                except (ValueError, TypeError):
+                    flash(f"El monto '{amount_str}' no es un número válido.", "danger")
+                    return redirect(url_for('main.onboarding_income'))
+
+                if amount < 0:
+                    flash("Los montos de ingreso no pueden ser negativos.", "danger")
+                    return redirect(url_for('main.onboarding_income'))
+
+                incomes_to_save.append({
+                    'source': source,
+                    'amount': amount,
+                    'frequency': frequency,
+                    'date': datetime.now().strftime('%Y-%m-%d')
+                })
+
+            if not incomes_to_save:
+                flash("Debes añadir al menos una fuente de ingreso válida.", "danger")
+                return redirect(url_for('main.onboarding_income'))
+            
+            # --- FIN DE LA NUEVA LÓGICA ---
+
+            # Procedemos a guardar en la base de datos
             income_ref = db.collection('users').document(user_id).collection('income')
+            
             for doc in income_ref.stream():
                 doc.reference.delete()
-
-            # Procesar y guardar los ingresos enviados desde el formulario.
-            income_count = 0
-            while f'source-{income_count}' in request.form:
-                source = request.form.get(f'source-{income_count}')
-                amount = request.form.get(f'amount-{income_count}')
-                frequency = request.form.get(f'frequency-{income_count}')
-
-                if source and amount and frequency:
-                    income_ref.add({
-                        'source': source, 
-                        'amount': float(amount), 
-                        'frequency': frequency,
-                        'date': datetime.now().strftime('%Y-%m-%d')
-                    })
-                income_count += 1
             
-            if income_count > 0:
-                return redirect(url_for('main.onboarding_budget'))
-            else:
-                flash("Debes añadir al menos una fuente de ingreso.", "danger")
+            for income_data in incomes_to_save:
+                income_ref.add(income_data)
+            
+            return redirect(url_for('main.onboarding_budget'))
 
         except Exception as e:
             flash(f"Ocurrió un error al guardar tus ingresos: {e}", "danger")
+            return redirect(url_for('main.onboarding_income'))
 
-    # LÓGICA DE CARGA: Cuando el usuario visita la página, le mostramos sus datos.
+    # Lógica para cargar la página (petición GET)
     try:
         user_doc = db.collection('users').document(user_id).get()
         user_data = user_doc.to_dict() if user_doc.exists else {}
-
-        # Buscamos los ingresos que ya existen en la base de datos.
         incomes_stream = db.collection('users').document(user_id).collection('income').stream()
         existing_incomes = [doc.to_dict() for doc in incomes_stream]
-        
-        # Enviamos los datos del usuario y sus ingresos a la plantilla.
         return render_template('onboarding_income.html', user=user_data, incomes=existing_incomes)
     except Exception as e:
         flash(f"Error al cargar la página: {e}", "danger")

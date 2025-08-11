@@ -19,13 +19,12 @@
                         </div>
                         <div>
                             <label for="amount-{{ loop.index0 }}" class="block text-sm font-medium text-gray-300">Monto ({{ user.currency or 'DOP' }})</label>
-                            <input type="number" step="0.01" name="amount-{{ loop.index0 }}" id="amount-{{ loop.index0 }}" value="{{ income.amount }}" class="mt-1 w-full p-2 bg-gray-900/70 border-gray-600 rounded-lg text-white" required>
+                            <input type="number" step="0.01" min="0" name="amount-{{ loop.index0 }}" id="amount-{{ loop.index0 }}" value="{{ income.amount }}" class="mt-1 w-full p-2 bg-gray-900/70 border-gray-600 rounded-lg text-white" required>
                         </div>
                     </div>
                     <div class="mt-4">
                         <label class="block text-sm font-medium text-gray-300">Frecuencia</label>
                         <div class="flex items-center space-x-4 mt-1">
-                            <!-- CAMBIO 1: Hacemos el 'name' del radio button único para cada grupo -->
                             <label class="flex items-center text-sm"><input type="radio" name="frequency-{{ loop.index0 }}" value="quincenal" {% if income.frequency == 'quincenal' %}checked{% endif %} class="mr-2">Quincenal</label>
                             <label class="flex items-center text-sm"><input type="radio" name="frequency-{{ loop.index0 }}" value="mensual" {% if income.frequency == 'mensual' %}checked{% endif %} class="mr-2">Mensual</label>
                         </div>
@@ -41,13 +40,12 @@
                         </div>
                         <div>
                             <label for="amount-0" class="block text-sm font-medium text-gray-300">Monto ({{ user.currency or 'DOP' }})</label>
-                            <input type="number" step="0.01" name="amount-0" id="amount-0" class="mt-1 w-full p-2 bg-gray-900/70 border-gray-600 rounded-lg text-white" required placeholder="25000">
+                            <input type="number" step="0.01" min="0" name="amount-0" id="amount-0" class="mt-1 w-full p-2 bg-gray-900/70 border-gray-600 rounded-lg text-white" required placeholder="25000">
                         </div>
                     </div>
                     <div class="mt-4">
                         <label class="block text-sm font-medium text-gray-300">Frecuencia</label>
                         <div class="flex items-center space-x-4 mt-1">
-                            <!-- CAMBIO 2: Aseguramos que el primer campo también tenga un 'name' único -->
                             <label class="flex items-center text-sm"><input type="radio" name="frequency-0" value="quincenal" class="mr-2">Quincenal</label>
                             <label class="flex items-center text-sm"><input type="radio" name="frequency-0" value="mensual" checked class="mr-2">Mensual</label>
                         </div>
@@ -78,8 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const addBtn = document.getElementById('add-income-btn');
     const container = document.getElementById('income-sources');
     
-    let incomeCount = {{ incomes|length }};
-
+    // Función para añadir la lógica de borrado a un botón
     function addRemoveFunctionality(element) {
         const removeBtn = element.querySelector('.remove-btn');
         if (removeBtn) {
@@ -89,37 +86,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Añadir funcionalidad de borrado a los elementos que ya existen en la página.
     document.querySelectorAll('.income-entry').forEach(entry => {
         addRemoveFunctionality(entry);
     });
 
+    // Lógica para añadir un nuevo campo de ingreso
     addBtn.addEventListener('click', () => {
+        // CORRECCIÓN: Contamos los elementos existentes para obtener el siguiente índice único.
+        // Esto soluciona el bug de los radio buttons y la pérdida de datos.
+        const nextIndex = document.querySelectorAll('.income-entry').length;
+
         const newEntry = document.createElement('div');
         newEntry.classList.add('income-entry', 'bg-gray-700/50', 'p-4', 'rounded-lg', 'relative');
         newEntry.innerHTML = `
             <button type="button" class="remove-btn absolute top-2 right-2 text-gray-500 hover:text-white text-2xl font-bold">&times;</button>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label for="source-${incomeCount}" class="block text-sm font-medium text-gray-300">Fuente de Ingreso</label>
-                    <input type="text" name="source-${incomeCount}" id="source-${incomeCount}" class="mt-1 w-full p-2 bg-gray-900/70 border-gray-600 rounded-lg text-white" required placeholder="Ej. Freelance">
+                    <label for="source-${nextIndex}" class="block text-sm font-medium text-gray-300">Fuente de Ingreso</label>
+                    <input type="text" name="source-${nextIndex}" id="source-${nextIndex}" class="mt-1 w-full p-2 bg-gray-900/70 border-gray-600 rounded-lg text-white" required placeholder="Ej. Freelance">
                 </div>
                 <div>
-                    <label for="amount-${incomeCount}" class="block text-sm font-medium text-gray-300">Monto (${userCurrency})</label>
-                    <input type="number" step="0.01" name="amount-${incomeCount}" id="amount-${incomeCount}" class="mt-1 w-full p-2 bg-gray-900/70 border-gray-600 rounded-lg text-white" required placeholder="5000">
+                    <label for="amount-${nextIndex}" class="block text-sm font-medium text-gray-300">Monto (${userCurrency})</label>
+                    <input type="number" step="0.01" min="0" name="amount-${nextIndex}" id="amount-${nextIndex}" class="mt-1 w-full p-2 bg-gray-900/70 border-gray-600 rounded-lg text-white" required placeholder="5000">
                 </div>
             </div>
             <div class="mt-4">
                 <label class="block text-sm font-medium text-gray-300">Frecuencia</label>
                 <div class="flex items-center space-x-4 mt-1">
-                    <!-- CAMBIO 3: El JavaScript ahora también crea radio buttons con 'name' únicos -->
-                    <label class="flex items-center text-sm"><input type="radio" name="frequency-${incomeCount}" value="quincenal" class="mr-2">Quincenal</label>
-                    <label class="flex items-center text-sm"><input type="radio" name="frequency-${incomeCount}" value="mensual" checked class="mr-2">Mensual</label>
+                    <label class="flex items-center text-sm"><input type="radio" name="frequency-${nextIndex}" value="quincenal" class="mr-2">Quincenal</label>
+                    <label class="flex items-center text-sm"><input type="radio" name="frequency-${nextIndex}" value="mensual" checked class="mr-2">Mensual</label>
                 </div>
             </div>
         `;
         container.appendChild(newEntry);
         addRemoveFunctionality(newEntry);
-        incomeCount++;
     });
 });
 </script>
