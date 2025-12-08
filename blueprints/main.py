@@ -175,15 +175,20 @@ def onboarding_currency():
 
 # --- RUTAS PRINCIPALES (PROTEGIDAS) ---
 #dashboard
+
 @main_bp.route('/dashboard')
 @login_required
 @onboarding_required
 def dashboard():
     user_id = session['user']
     try:
-        # 1. RECUPERAR DATOS DEL USUARIO (Importante para la moneda y el nombre)
+        # 1. DATOS DE USUARIO Y FECHA
         user_doc = db.collection('users').document(user_id).get()
         user_data = user_doc.to_dict() if user_doc.exists else {}
+        
+        now = datetime.now()
+        current_month = now.month
+        current_year = now.year
 
         # 2. OBTENER COLECCIONES
         income_docs = db.collection('users').document(user_id).collection('income').stream()
@@ -192,67 +197,80 @@ def dashboard():
 
         all_income = [doc.to_dict() for doc in income_docs]
         all_expenses = [doc.to_dict() for doc in expenses_docs]
-        # Aseguramos que las categorías tengan ID para los enlaces
         all_categories = [{'id': doc.id, **doc.to_dict()} for doc in categories_docs]
 
-        # Fechas actuales
-        now = datetime.now()
-        current_month = now.month
-        current_year = now.year
-
-        # 3. CALCULAR INGRESO MENSUAL (Lógica Corregida)
+        # 3. CALCULAR INGRESOS (Híbrido: Fijos + Variables del mes)
         total_monthly_income = 0
-        
         for inc in all_income:
-            freq = inc.get('frequency', 'ocasional') # Si no tiene frecuencia, asumimos ocasional
+            freq = inc.get('frequency', 'ocasional')
             amount = float(inc.get('amount', 0))
             
-            # CASO A: Ingresos Recurrentes (Cuentan siempre)
             if freq == 'mensual':
                 total_monthly_income += amount
             elif freq == 'quincenal':
                 total_monthly_income += (amount * 26) / 12
             elif freq == 'anual':
                 total_monthly_income += amount / 12
-            
-            # CASO B: Ingresos Ocasionales (Solo cuentan si son de este mes)
-            else: 
+            else: # Ocasional
                 inc_date_str = inc.get('date')
                 if inc_date_str:
                     try:
                         inc_date = datetime.strptime(inc_date_str, '%Y-%m-%d')
                         if inc_date.month == current_month and inc_date.year == current_year:
                             total_monthly_income += amount
-                    except ValueError:
-                        continue # Si la fecha está malformada, la ignoramos
+                    except ValueError: pass
 
-        # 4. CALCULAR GASTOS (Solo del mes actual)
-        monthly_expenses = []
+        # 4. CALCULAR GASTOS (Híbrido) Y PREPARAR LISTA PARA CATEGORÍAS
+        total_monthly_expenses = 0
+        monthly_expenses_active = [] # Lista con el monto mensualizado para cálculos de categoría
+
         for exp in all_expenses:
-            exp_date_str = exp.get('date')
-            if exp_date_str:
-                try:
-                    exp_date = datetime.strptime(exp_date_str, '%Y-%m-%d')
-                    if exp_date.month == current_month and exp_date.year == current_year:
-                        monthly_expenses.append(exp)
-                except ValueError:
-                    continue
+            freq = exp.get('frequency', 'ocasional')
+            amount = float(exp.get('amount', 0))
+            is_active_this_month = False
+            effective_amount = 0 # Cuánto impacta este gasto al mes (ej. quincenal se ajusta)
 
-        total_monthly_expenses = sum(float(exp.get('amount', 0)) for exp in monthly_expenses)
+            # Lógica de Proyección
+            if freq == 'mensual':
+                effective_amount = amount
+                is_active_this_month = True
+            elif freq == 'quincenal':
+                effective_amount = (amount * 26) / 12
+                is_active_this_month = True
+            elif freq == 'anual':
+                effective_amount = amount / 12
+                is_active_this_month = True
+            else: # Ocasional
+                exp_date_str = exp.get('date')
+                if exp_date_str:
+                    try:
+                        exp_date = datetime.strptime(exp_date_str, '%Y-%m-%d')
+                        if exp_date.month == current_month and exp_date.year == current_year:
+                            effective_amount = amount
+                            is_active_this_month = True
+                    except ValueError: pass
+            
+            # Si el gasto cuenta este mes, sumamos al total global y lo guardamos para categorías
+            if is_active_this_month:
+                total_monthly_expenses += effective_amount
+                # Guardamos una copia con el monto "efectivo" para que la suma por categoría cuadre
+                active_expense = exp.copy()
+                active_expense['effective_amount'] = effective_amount
+                monthly_expenses_active.append(active_expense)
+
+        # 5. PROCESAR CATEGORÍAS
+        # Usamos 'total_monthly_income' para definir el tope de gasto (Presupuesto)
+        total_budgeted = total_monthly_income 
         
-        # El presupuesto total es igual al ingreso disponible del mes
-        total_budgeted = total_monthly_income
-
-        # 5. PROCESAR CATEGORÍAS (Barras de progreso)
         expenses_by_category = []
         for cat in all_categories:
             if not cat: continue
             
-            # Cuánto dinero toca a esta categoría según el porcentaje
+            # Presupuesto de esta categoría = % del Ingreso Total Real
             budget_amount = total_monthly_income * (cat.get('budget_percent', 0) / 100)
             
-            # Cuánto se ha gastado en esta categoría este mes
-            spent = sum(float(exp.get('amount', 0)) for exp in monthly_expenses if exp.get('categoryId') == cat.get('id'))
+            # Lo gastado en esta categoría (Usando los montos mensualizados calculados arriba)
+            spent = sum(x['effective_amount'] for x in monthly_expenses_active if x.get('categoryId') == cat.get('id'))
             
             percentage = (spent / budget_amount * 100) if budget_amount > 0 else 0
             
@@ -266,7 +284,7 @@ def dashboard():
 
         return render_template(
             'dashboard.html', 
-            user=user_data, # <--- Esto faltaba para que funcione {{ user.currency }}
+            user=user_data,
             month_name=now.strftime('%B').capitalize(),
             total_income=total_monthly_income, 
             total_expenses=total_monthly_expenses,
@@ -276,9 +294,10 @@ def dashboard():
             today_date=now.strftime('%Y-%m-%d')
         )
     except Exception as e:
-        print(f"Error detallado: {e}") # Esto te ayudará a ver el error en la terminal
+        print(f"Error en dashboard: {e}") # Ayuda a depurar en consola
         flash(f"Ocurrió un error al cargar tus datos: {e}", "danger")
         return render_template('dashboard.html', month_name=datetime.now().strftime('%B').capitalize())
+
 #dashboard final
 
 @main_bp.route('/add_transaction', methods=['POST'])

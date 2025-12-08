@@ -1,0 +1,127 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-white">Mis Gastos</h1>
+            <p class="text-gray-400">Gestiona tus gastos fijos y variables.</p>
+        </div>
+        <a href="{{ url_for('main.dashboard') }}" class="text-gray-400 hover:text-white transition">
+            &larr; Volver al Panel
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <div class="lg:col-span-1">
+            <div class="bg-gray-800 p-6 rounded-2xl shadow-lg sticky top-8">
+                <h3 class="text-xl font-bold text-white mb-4">Registrar Gasto</h3>
+                <form action="{{ url_for('expenses.add') }}" method="POST" class="space-y-4">
+                    
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Descripción</label>
+                        <input type="text" name="description" placeholder="Ej. Alquiler, Supermercado" required
+                               class="w-full bg-gray-700 text-white rounded-lg p-2 outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Monto</label>
+                        <input type="number" step="0.01" name="amount" required
+                               class="w-full bg-gray-700 text-white rounded-lg p-2 outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Categoría</label>
+                        <select name="category_id" class="w-full bg-gray-700 text-white rounded-lg p-2 outline-none focus:ring-2 focus:ring-red-500">
+                            {% for cat in categories %}
+                            <option value="{{ cat.id }}">{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Tipo de Gasto</label>
+                        <select name="frequency" class="w-full bg-gray-700 text-white rounded-lg p-2 outline-none focus:ring-2 focus:ring-red-500">
+                            <option value="ocasional">Ocasional (Salidas, Compras)</option>
+                            <option value="mensual">Fijo Mensual (Renta, Internet)</option>
+                            <option value="quincenal">Fijo Quincenal</option>
+                            <option value="anual">Fijo Anual</option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Los fijos se suman automáticamente al total del mes.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Fecha</label>
+                        <input type="date" name="date" value="{{ today_date }}" required 
+                               class="w-full bg-gray-700 text-white rounded-lg p-2 outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+
+                    <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-lg transition">
+                        Registrar Gasto
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-4">
+            <div class="bg-gradient-to-r from-red-900 to-gray-800 p-6 rounded-2xl flex justify-between items-center border border-red-800">
+                <div>
+                    <p class="text-red-400 font-bold uppercase text-xs tracking-wider">Total Gastos (Mes Actual)</p>
+                    <h2 class="text-3xl font-extrabold text-white">RD$ {{ total_projection|number_format }}</h2>
+                </div>
+                <div class="bg-red-500 p-3 rounded-full bg-opacity-20">
+                    <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 rounded-2xl overflow-hidden shadow-lg">
+                <table class="w-full text-left text-gray-400">
+                    <thead class="bg-gray-700 text-gray-200 uppercase text-xs">
+                        <tr>
+                            <th class="p-4">Descripción</th>
+                            <th class="p-4">Categoría</th>
+                            <th class="p-4">Tipo</th>
+                            <th class="p-4 text-right">Monto</th>
+                            <th class="p-4"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700">
+                        {% for exp in expenses %}
+                        <tr class="hover:bg-gray-700 transition">
+                            <td class="p-4">
+                                <div class="text-white font-medium">{{ exp.description }}</div>
+                                <div class="text-xs text-gray-500">{{ exp.date }}</div>
+                            </td>
+                            <td class="p-4">
+                                <span class="px-2 py-1 rounded text-xs text-white" style="background-color: {{ exp.category_color }}">
+                                    {{ exp.category_name }}
+                                </span>
+                            </td>
+                            <td class="p-4">
+                                {% if exp.frequency == 'ocasional' %}
+                                    <span class="text-gray-400 text-xs border border-gray-600 px-2 py-1 rounded">Variable</span>
+                                {% else %}
+                                    <span class="text-red-200 bg-red-900/50 text-xs px-2 py-1 rounded border border-red-800">Fijo {{ exp.frequency|capitalize }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="p-4 text-right text-white font-bold">
+                                RD$ {{ exp.amount|number_format }}
+                            </td>
+                            <td class="p-4 text-right">
+                                <form action="{{ url_for('expenses.delete', expense_id=exp.id) }}" method="POST" onsubmit="return confirm('¿Borrar este gasto?');" class="inline">
+                                    <button type="submit" class="text-gray-500 hover:text-red-400">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="p-8 text-center text-gray-500">No hay gastos registrados.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

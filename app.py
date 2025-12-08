@@ -15,7 +15,8 @@ import firebase_config
 # Importa los blueprints que contienen las rutas de la aplicación.
 from blueprints.auth import auth_bp
 from blueprints.main import main_bp
-from blueprints.income import income_bp  # <--- 1. Importar aquí el blueprint de ingresos
+from blueprints.income import income_bp  
+from blueprints.expenses import expenses_bp     
 
 # Inicializa la aplicación Flask
 app = Flask(__name__)
@@ -48,6 +49,8 @@ app.register_blueprint(auth_bp, url_prefix='/auth')
 
 # --- NUEVO: Rutas de ingresos (ej. /income/history) ---
 app.register_blueprint(income_bp, url_prefix='/income')
+# --- NUEVO: Rutas de gastos (ej. /expenses/history) ---
+app.register_blueprint(expenses_bp, url_prefix='/expenses')
 # Todas las rutas en main.py estarán en la raíz del sitio.
 app.register_blueprint(main_bp, url_prefix='/')
 
