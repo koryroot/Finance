@@ -174,52 +174,112 @@ def onboarding_currency():
     return render_template('onboarding_currency.html')
 
 # --- RUTAS PRINCIPALES (PROTEGIDAS) ---
+#dashboard
 @main_bp.route('/dashboard')
 @login_required
 @onboarding_required
 def dashboard():
     user_id = session['user']
     try:
+        # 1. RECUPERAR DATOS DEL USUARIO (Importante para la moneda y el nombre)
+        user_doc = db.collection('users').document(user_id).get()
+        user_data = user_doc.to_dict() if user_doc.exists else {}
+
+        # 2. OBTENER COLECCIONES
         income_docs = db.collection('users').document(user_id).collection('income').stream()
         expenses_docs = db.collection('users').document(user_id).collection('expenses').stream()
         categories_docs = db.collection('users').document(user_id).collection('categories').stream()
 
         all_income = [doc.to_dict() for doc in income_docs]
         all_expenses = [doc.to_dict() for doc in expenses_docs]
+        # Aseguramos que las categorías tengan ID para los enlaces
         all_categories = [{'id': doc.id, **doc.to_dict()} for doc in categories_docs]
 
-        current_month = datetime.now().month
-        current_year = datetime.now().year
+        # Fechas actuales
+        now = datetime.now()
+        current_month = now.month
+        current_year = now.year
 
-        monthly_income = [inc for inc in all_income if inc and 'date' in inc and datetime.fromisoformat(inc['date']).month == current_month and datetime.fromisoformat(inc['date']).year == current_year]
-        monthly_expenses = [exp for exp in all_expenses if exp and 'date' in exp and datetime.fromisoformat(exp['date']).month == current_month and datetime.fromisoformat(exp['date']).year == current_year]
+        # 3. CALCULAR INGRESO MENSUAL (Lógica Corregida)
+        total_monthly_income = 0
+        
+        for inc in all_income:
+            freq = inc.get('frequency', 'ocasional') # Si no tiene frecuencia, asumimos ocasional
+            amount = float(inc.get('amount', 0))
+            
+            # CASO A: Ingresos Recurrentes (Cuentan siempre)
+            if freq == 'mensual':
+                total_monthly_income += amount
+            elif freq == 'quincenal':
+                total_monthly_income += (amount * 26) / 12
+            elif freq == 'anual':
+                total_monthly_income += amount / 12
+            
+            # CASO B: Ingresos Ocasionales (Solo cuentan si son de este mes)
+            else: 
+                inc_date_str = inc.get('date')
+                if inc_date_str:
+                    try:
+                        inc_date = datetime.strptime(inc_date_str, '%Y-%m-%d')
+                        if inc_date.month == current_month and inc_date.year == current_year:
+                            total_monthly_income += amount
+                    except ValueError:
+                        continue # Si la fecha está malformada, la ignoramos
 
-        total_monthly_income = sum(inc.get('amount', 0) for inc in monthly_income)
-        total_monthly_expenses = sum(exp.get('amount', 0) for exp in monthly_expenses)
+        # 4. CALCULAR GASTOS (Solo del mes actual)
+        monthly_expenses = []
+        for exp in all_expenses:
+            exp_date_str = exp.get('date')
+            if exp_date_str:
+                try:
+                    exp_date = datetime.strptime(exp_date_str, '%Y-%m-%d')
+                    if exp_date.month == current_month and exp_date.year == current_year:
+                        monthly_expenses.append(exp)
+                except ValueError:
+                    continue
+
+        total_monthly_expenses = sum(float(exp.get('amount', 0)) for exp in monthly_expenses)
+        
+        # El presupuesto total es igual al ingreso disponible del mes
         total_budgeted = total_monthly_income
 
+        # 5. PROCESAR CATEGORÍAS (Barras de progreso)
         expenses_by_category = []
         for cat in all_categories:
             if not cat: continue
+            
+            # Cuánto dinero toca a esta categoría según el porcentaje
             budget_amount = total_monthly_income * (cat.get('budget_percent', 0) / 100)
-            spent = sum(exp.get('amount', 0) for exp in monthly_expenses if exp.get('categoryId') == cat.get('id'))
+            
+            # Cuánto se ha gastado en esta categoría este mes
+            spent = sum(float(exp.get('amount', 0)) for exp in monthly_expenses if exp.get('categoryId') == cat.get('id'))
+            
             percentage = (spent / budget_amount * 100) if budget_amount > 0 else 0
             
             expenses_by_category.append({
-                **cat, 'budget_amount': budget_amount, 'spent': spent, 
-                'remaining': budget_amount - spent, 'percentage_capped': min(percentage, 100)
+                **cat, 
+                'budget_amount': budget_amount, 
+                'spent': spent, 
+                'remaining': budget_amount - spent, 
+                'percentage_capped': min(percentage, 100)
             })
 
         return render_template(
-            'dashboard.html', month_name=datetime.now().strftime('%B').capitalize(),
-            total_income=total_monthly_income, total_expenses=total_monthly_expenses,
+            'dashboard.html', 
+            user=user_data, # <--- Esto faltaba para que funcione {{ user.currency }}
+            month_name=now.strftime('%B').capitalize(),
+            total_income=total_monthly_income, 
+            total_expenses=total_monthly_expenses,
             total_budgeted=total_budgeted,
-            expenses_by_category=expenses_by_category, categories=all_categories,
-            today_date=datetime.now().strftime('%Y-%m-%d')
+            expenses_by_category=expenses_by_category, 
+            categories=all_categories,
+            today_date=now.strftime('%Y-%m-%d')
         )
     except Exception as e:
+        print(f"Error detallado: {e}") # Esto te ayudará a ver el error en la terminal
         flash(f"Ocurrió un error al cargar tus datos: {e}", "danger")
         return render_template('dashboard.html', month_name=datetime.now().strftime('%B').capitalize())
+#dashboard final
 
 @main_bp.route('/add_transaction', methods=['POST'])
 @login_required

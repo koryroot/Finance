@@ -9,13 +9,28 @@
     {% if total_income is defined %}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Tarjetas de Resumen -->
-        <div class="bg-gray-800 p-6 rounded-2xl shadow-lg flex items-center space-x-4">
+        <!-- <div class="bg-gray-800 p-6 rounded-2xl shadow-lg flex items-center space-x-4">
             <div class="p-3 rounded-full bg-green-500"><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg></div>
             <div>
                 <p class="text-sm text-gray-400">Ingresos del Mes</p>
                 <p class="text-2xl font-bold text-white">DOP {{ total_income|number_format }}</p>
             </div>
+        </div> -->
+
+        <a href="{{ url_for('income.history') }}" class="group bg-gray-800 p-6 rounded-2xl shadow-lg flex items-center space-x-4 cursor-pointer hover:bg-gray-750 transition-all border border-transparent hover:border-green-500/30">
+        <div class="p-3 rounded-full bg-green-500 group-hover:scale-110 transition-transform">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
         </div>
+        <div>
+            <div class="flex items-center gap-2">
+                <p class="text-sm text-gray-400 group-hover:text-green-400 transition-colors">Ingresos del Mes</p>
+                <svg class="w-3 h-3 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+            </div>
+            <p class="text-2xl font-bold text-white">{{ user.currency or 'DOP' }} {{ total_income|number_format }}</p>
+        </div>
+        </a>
+
+
         <div class="bg-gray-800 p-6 rounded-2xl shadow-lg flex items-center space-x-4">
             <div class="p-3 rounded-full bg-red-500"><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg></div>
             <div>
