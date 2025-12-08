@@ -17,6 +17,7 @@ from blueprints.auth import auth_bp
 from blueprints.main import main_bp
 from blueprints.income import income_bp  
 from blueprints.expenses import expenses_bp     
+from blueprints.budget import budget_bp
 
 # Inicializa la aplicación Flask
 app = Flask(__name__)
@@ -52,6 +53,8 @@ app.register_blueprint(income_bp, url_prefix='/income')
 # --- NUEVO: Rutas de gastos (ej. /expenses/history) ---
 app.register_blueprint(expenses_bp, url_prefix='/expenses')
 # Todas las rutas en main.py estarán en la raíz del sitio.
+app.register_blueprint(budget_bp, url_prefix='/budget')
+
 app.register_blueprint(main_bp, url_prefix='/')
 
 

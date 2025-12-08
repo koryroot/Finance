@@ -21,7 +21,7 @@
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                         <span class="text-xs mt-1">Panel</span>
                     </a>
-                    <a href="{{ url_for('main.budget') }}" class="flex flex-col items-center p-3 rounded-2xl {{ 'bg-blue-600 text-white' if 'budget' in request.endpoint else 'text-gray-400 hover:bg-gray-700' }}">
+                    <a href="{{ url_for('budget.planner') }}" class="flex flex-col items-center p-3 rounded-2xl {{ 'bg-blue-600 text-white' if 'budget' in request.endpoint else 'text-gray-400 hover:bg-gray-700' }}">
                          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 20v-6M6 20v-2M18 20v-4"/><path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/><path d="M6 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/><path d="M18 16a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/></svg>
                         <span class="text-xs mt-1">Presup.</span>
                     </a>
