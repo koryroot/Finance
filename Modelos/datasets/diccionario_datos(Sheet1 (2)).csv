@@ -1,0 +1,147 @@
+Reto;Tabla;Columna;Definición
+ML;balance_historico_clientes;balance;Saldo total de los productos de inversión adquiridos por el cliente en ese momento.
+ML;balance_historico_clientes;conocimiento_inversionista;Nivel de conocimiento del cliente como inversionista.
+ML;balance_historico_clientes;corte;Fecha data en la que se midieron las variables de ese cliente.
+ML;balance_historico_clientes;cuenta;ID único de cliente
+ML;balance_historico_clientes;destino_ingresos_generados;Propósito al que se dedican los ingresos generados
+ML;balance_historico_clientes;edad;Edad del cliente a la fecha corte
+ML;balance_historico_clientes;estado_laboral;Estado laboral del cliente
+ML;balance_historico_clientes;moneda_liquidacion;Moneda en la que se liquida el saldo/operación del cliente.
+ML;balance_historico_clientes;moneda_titulo;Moneda del instrumento o producto que compone el balance.
+ML;balance_historico_clientes;nacionalidad;Nacionalidad declarada del cliente.
+ML;balance_historico_clientes;pais_residencia;País de residencia declarado por el cliente.
+ML;balance_historico_clientes;patrimonio_total;Patrimonio total declarado por el cliente.
+ML;balance_historico_clientes;perfil_inversionista;Perfil asignado al cliente (p. ej., conservador, moderado, agresivo) según formulario.
+ML;balance_historico_clientes;plazo;Plazo objetivo/preferido de inversión del cliente (días o categoría).
+ML;balance_historico_clientes;producto;Tipo de producto vigente que integra el balance.
+ML;balance_historico_clientes;promedio_ingresos_anuales;Ingreso anual promedio declarado por el cliente.
+ML;balance_historico_clientes;riesgo;Tipo: texto. Ejemplo: Medio Clasificación de riesgo (bajo/medio/alto) basada en matriz que usa país de residencia, monto a invertir, nacionalidad y ocupación.
+ML;balance_historico_clientes;sector_economico;Sector económico del cliente.
+ML;balance_historico_clientes;sexo;Sexo del cliente.
+ML;balance_historico_clientes;tipo_cambio_fx;Tasa de cambio de Foreign Exchange
+ML;balance_historico_clientes;total_activos_liquidos;Total de activos líquidos declarados por el cliente.
+ML;noticias_historico;date;Fecha de publicación de la noticia
+ML;noticias_historico;page_num;Número de página del periódico en el que aparece la noticia. Todas se sacaron de la misma publicación así que el número de páginas es comparable.
+ML;noticias_historico;sentimiento_negativo;Probabilidad de sentimiento de texto Negativo (usando modelo de lenguaje pysentimiento https://github.com/pysentimiento/pysentimiento ). Rango [0,1].
+ML;noticias_historico;sentimiento_neutro;Probabilidad de sentimiento de texto Neutro (usando modelo de lenguaje pysentimiento https://github.com/pysentimiento/pysentimiento ). Rango [0,1].
+ML;noticias_historico;sentimiento_positivo;Probabilidad de sentimiento de texto Positivo (usando modelo de lenguaje pysentimiento https://github.com/pysentimiento/pysentimiento ). Rango [0,1].
+ML;noticias_historico;titulo;Título completo del artículo
+ML;noticias_historico;topico_prob_crimen;Probabilidad inferida del tópico al que pertenece la noticia, usando modelo de lenguaje mDeBERTa XNLI https://huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7. Rango [0,1].
+ML;noticias_historico;topico_prob_deportes;Probabilidad inferida del tópico al que pertenece la noticia, usando modelo de lenguaje mDeBERTa XNLI https://huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7. Rango [0,1].
+ML;noticias_historico;topico_prob_economía;Probabilidad inferida del tópico al que pertenece la noticia, usando modelo de lenguaje mDeBERTa XNLI https://huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7. Rango [0,1].
+ML;noticias_historico;topico_prob_entretenimiento;Probabilidad inferida del tópico al que pertenece la noticia, usando modelo de lenguaje mDeBERTa XNLI https://huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7. Rango [0,1].
+ML;noticias_historico;topico_prob_internacional;Probabilidad inferida del tópico al que pertenece la noticia, usando modelo de lenguaje mDeBERTa XNLI https://huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7. Rango [0,1].
+ML;noticias_historico;topico_prob_otros;Probabilidad inferida del tópico al que pertenece la noticia, usando modelo de lenguaje mDeBERTa XNLI https://huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7. Rango [0,1].
+ML;noticias_historico;topico_prob_política;Probabilidad inferida del tópico al que pertenece la noticia, usando modelo de lenguaje mDeBERTa XNLI https://huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7. Rango [0,1].
+ML;noticias_historico;topico_prob_salud;Probabilidad inferida del tópico al que pertenece la noticia, usando modelo de lenguaje mDeBERTa XNLI https://huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7. Rango [0,1].
+ML;operaciones_historico_clientes;conocimiento_inversionista;Nivel de conocimiento financiero declarado por el cliente.
+ML;operaciones_historico_clientes;cuenta;ID único de cliente.
+ML;operaciones_historico_clientes;destino_ingresos_generados;Propósito declarado para los ingresos generados por las inversiones.
+ML;operaciones_historico_clientes;edad;Edad del cliente a la fecha de la operación.
+ML;operaciones_historico_clientes;estado_laboral;Condición laboral del cliente.
+ML;operaciones_historico_clientes;fecha_pacto;Fecha en la que se pacta/abre la operación.
+ML;operaciones_historico_clientes;fecha_vencimiento;Fecha en la que vence o se liquida la operación/título.
+ML;operaciones_historico_clientes;moneda;Moneda en la que se realiza la operación.
+ML;operaciones_historico_clientes;monto_final;Monto al que se vende la inversión al que se vende una operación de corto plazo. En largo plazo, está vacía, y si es una operación de venta, el monto se registra en monto_invertido
+ML;operaciones_historico_clientes;monto_invertido;Monto de la operación
+ML;operaciones_historico_clientes;nacionalidad;Nacionalidad declarada del cliente.
+ML;operaciones_historico_clientes;origen_operacion;Canal de origen de la operación (p. ej., sucursal, web, asesor).
+ML;operaciones_historico_clientes;pais_residencia;País de residencia declarado por el cliente.
+ML;operaciones_historico_clientes;patrimonio_total;Patrimonio total declarado por el cliente.
+ML;operaciones_historico_clientes;perfil_inversionista;Perfil asignado al cliente (p. ej., conservador, moderado, agresivo) según formulario.
+ML;operaciones_historico_clientes;plazo;Plazo objetivo/preferido de inversión del cliente (días o categoría).
+ML;operaciones_historico_clientes;precio_compra;Precio de compra del título en operaciones de largo plazo.
+ML;operaciones_historico_clientes;precio_mercado;Precio de mercado del título a la fecha de la operación.
+ML;operaciones_historico_clientes;producto_operacion;Producto o título negociado en la operación.
+ML;operaciones_historico_clientes;promedio_ingresos_anuales;Ingreso anual promedio declarado por el cliente.
+ML;operaciones_historico_clientes;rendimiento;Rendimiento de la operación en porcentaje (aplica a corto plazo).
+ML;operaciones_historico_clientes;riesgo;Clasificación de riesgo del cliente según la matriz de riesgo.
+ML;operaciones_historico_clientes;sector_economico;Sector económico de la actividad principal del cliente.
+ML;operaciones_historico_clientes;sexo;Sexo del cliente.
+ML;operaciones_historico_clientes;tipo_operacion;Tipo de operación (compra, venta, renovación, etc.).
+ML;operaciones_historico_clientes;titulo;Nombre del valor o emisión en operaciones de largo plazo.
+ML;operaciones_historico_clientes;total_activos_liquidos;Total de activos líquidos declarados por el cliente.
+ML;Tasas Prod PB;Corte;Fecha en la que ese producto estaba disponible a esa tasa.
+ML;Tasas Prod PB;Duracion;Duración en días para vender el producto (corto plazo).
+ML;Tasas Prod PB;Moneda;Moneda en la que se haría la inversión.
+ML;Tasas Prod PB;Producto;Producto de inversión. Nombre Genérico.
+ML;Tasas Prod PB;Tasa;Tasa de rendimiento según producto/moneda/monto/plazo.
+ML;Tasas Prod PB;Valor;Monto para el que aplica esa tasa. Normalmente, a mayor monto, mejor rendimiento
+ML;Tasas Titulos PB;Bid;Bid=Compra, Offer=Venta. Largo plazo: precio en moneda. Corto plazo: rendimiento %. Valores >20 son precio.
+ML;Tasas Titulos PB;Corte;Fecha en la que ese producto estaba disponible a esa tasa.
+ML;Tasas Titulos PB;Emisor;Entidad emisora del título.
+ML;Tasas Titulos PB;Moneda;Moneda en la que se haría la inversión.
+ML;Tasas Titulos PB;Offer;Bid=Compra, Offer=Venta. Largo plazo: precio en moneda. Corto plazo: rendimiento %. Valores >20 son precio.
+ML;Tasas Titulos PB;Tipo;Tipo de título. Todas aquí son RETAIL.
+ML;Tasas Titulos PB;Vencimiento;Fecha de vecimiento en la que el producto pagará su valor nominal.
+VIS;noticias_historico;fecha;Fecha de publicación de la noticia
+VIS;noticias_historico;menciona_abinader;Indicador binario: 1 si el título menciona “Abinader”, 0 en caso contrario.
+VIS;noticias_historico;menciona_congreso_nacional;Indicador binario: 1 si el título menciona “Congreso Nacional”.
+VIS;noticias_historico;menciona_estados_unidos;Indicador binario: 1 si el título menciona “Estados Unidos”.
+VIS;noticias_historico;menciona_gobierno;Indicador binario: 1 si el título menciona “Gobierno”.
+VIS;noticias_historico;menciona_haiti;Indicador binario: 1 si el título menciona “Haití”.
+VIS;noticias_historico;menciona_minerd;Indicador binario: 1 si el título menciona “MINERD”.
+VIS;noticias_historico;menciona_ministerio_de_salud_publica;Indicador binario: 1 si el título menciona “Ministerio de Salud Pública”.
+VIS;noticias_historico;menciona_pld;Indicador binario: 1 si el título menciona “PLD”.
+VIS;noticias_historico;menciona_policia_nacional;Indicador binario: 1 si el título menciona “Policía Nacional”.
+VIS;noticias_historico;menciona_prm;Indicador binario: 1 si el título menciona “PRM”.
+VIS;noticias_historico;menciona_republica_dominicana;Indicador binario: 1 si el título menciona “República Dominicana”.
+VIS;noticias_historico;menciona_senado;Indicador binario: 1 si el título menciona “Senado”.
+VIS;noticias_historico;numero_pagina;Número de página del periódico.
+VIS;noticias_historico;sentimiento_clase;Tipo: texto. Ejemplo: NEU Probabilidad de sentimiento (pysentimiento). Rango [0,1].
+VIS;noticias_historico;sentimiento_negativo;Probabilidad de sentimiento de texto Negativo (usando modelo de lenguaje pysentimiento https://github.com/pysentimiento/pysentimiento ). Rango [0,1].
+VIS;noticias_historico;sentimiento_neutro;Probabilidad de sentimiento de texto Neutro (usando modelo de lenguaje pysentimiento https://github.com/pysentimiento/pysentimiento ). Rango [0,1].
+VIS;noticias_historico;sentimiento_polaridad;Métrica de -1 a 1 que refleja la positividad de la noticia. Se calcula con % POS - % NEG
+VIS;noticias_historico;sentimiento_positivo;Probabilidad de sentimiento de texto Positivo (usando modelo de lenguaje pysentimiento https://github.com/pysentimiento/pysentimiento ). Rango [0,1].
+VIS;noticias_historico;sentimiento_subjetividad;Métrica de subjetividad de la noticia inferida por modelo de sentimiento. Rango [0,1]. 0 Significa una noticia muy objetiva e imparcial, 1 significa una noticia muy subjetiva y opinionada.
+VIS;noticias_historico;titulo;Nombre del valor o emisión en operaciones de largo plazo.
+VIS;noticias_historico;topico_mas_probable;Tópico identificado con la mayor probabilidad inferida al que pertenece la noticia, usando modelo de lenguaje mDeBERTa XNLI https://huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7. Rango [0,1].
+VIS;noticias_historico;topico_mas_probable_confianza;Confianza del modelo de lenguaje en el tópico más probable
+VIS;noticias_historico;topico_prob_crimen;Probabilidad inferida del tópico al que pertenece la noticia, usando modelo de lenguaje mDeBERTa XNLI https://huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7. Rango [0,1].
+VIS;noticias_historico;topico_prob_deportes;Probabilidad inferida del tópico al que pertenece la noticia, usando modelo de lenguaje mDeBERTa XNLI https://huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7. Rango [0,1].
+VIS;noticias_historico;topico_prob_economía;Probabilidad inferida del tópico al que pertenece la noticia, usando modelo de lenguaje mDeBERTa XNLI https://huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7. Rango [0,1].
+VIS;noticias_historico;topico_prob_entretenimiento;Probabilidad inferida del tópico al que pertenece la noticia, usando modelo de lenguaje mDeBERTa XNLI https://huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7. Rango [0,1].
+VIS;noticias_historico;topico_prob_internacional;Probabilidad inferida del tópico al que pertenece la noticia, usando modelo de lenguaje mDeBERTa XNLI https://huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7. Rango [0,1].
+VIS;noticias_historico;topico_prob_otros;Probabilidad inferida del tópico al que pertenece la noticia, usando modelo de lenguaje mDeBERTa XNLI https://huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7. Rango [0,1].
+VIS;noticias_historico;topico_prob_política;Probabilidad inferida del tópico al que pertenece la noticia, usando modelo de lenguaje mDeBERTa XNLI https://huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7. Rango [0,1].
+VIS;noticias_historico;topico_prob_salud;Probabilidad inferida del tópico al que pertenece la noticia, usando modelo de lenguaje mDeBERTa XNLI https://huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7. Rango [0,1].
+VIS;operaciones_historico_clientes;conocimiento_inversionista;Nivel de conocimiento financiero declarado por el cliente.
+VIS;operaciones_historico_clientes;cuenta;ID único de cliente.
+VIS;operaciones_historico_clientes;destino_ingresos_generados;Propósito declarado para los ingresos generados por las inversiones.
+VIS;operaciones_historico_clientes;edad;Edad del cliente a la fecha de la operación.
+VIS;operaciones_historico_clientes;estado_laboral;Condición laboral del cliente.
+VIS;operaciones_historico_clientes;fecha_pacto;Fecha en la que se pacta/abre la operación.
+VIS;operaciones_historico_clientes;fecha_vencimiento;Fecha en la que vence o se liquida la operación/título.
+VIS;operaciones_historico_clientes;moneda;Moneda en la que se haría la inversión.
+VIS;operaciones_historico_clientes;monto_final;"Monto al que se vende la inversión en operaciones de corto plazo; en largo plazo queda vacío si solo hay un evento."
+VIS;operaciones_historico_clientes;monto_invertido;Monto de la operación al momento del pacto/compra.
+VIS;operaciones_historico_clientes;nacionalidad;Nacionalidad del cliente.
+VIS;operaciones_historico_clientes;origen_operacion;Canal de origen de la operación (p. ej., sucursal, web, asesor).
+VIS;operaciones_historico_clientes;pais_residencia;País de residencia del cliente.
+VIS;operaciones_historico_clientes;patrimonio_total;Patrimonio total declarado por el cliente.
+VIS;operaciones_historico_clientes;perfil_inversionista;Perfil de inversión asignado al cliente.
+VIS;operaciones_historico_clientes;plazo;Días entre pacto y vencimiento (corto plazo) o plazo del título (largo plazo).
+VIS;operaciones_historico_clientes;precio_compra;Precio de compra del título en operaciones de largo plazo.
+VIS;operaciones_historico_clientes;precio_mercado;Precio de mercado del título a la fecha de la operación.
+VIS;operaciones_historico_clientes;producto_operacion;Producto o título negociado en la operación.
+VIS;operaciones_historico_clientes;promedio_ingresos_anuales;Ingreso anual promedio declarado por el cliente.
+VIS;operaciones_historico_clientes;rendimiento;Rendimiento de la operación en porcentaje (aplica a corto plazo).
+VIS;operaciones_historico_clientes;riesgo;Clasificación de riesgo del cliente según la matriz de riesgo.
+VIS;operaciones_historico_clientes;sector_economico;Sector económico del cliente.
+VIS;operaciones_historico_clientes;sexo;Sexo del cliente.
+VIS;operaciones_historico_clientes;tipo_operacion;Tipo de operación (compra, venta, renovación, etc.).
+VIS;operaciones_historico_clientes;titulo;Nombre del valor o emisión en operaciones de largo plazo.
+VIS;operaciones_historico_clientes;total_activos_liquidos;Total de activos líquidos declarados por el cliente.
+VIS;Tasas Prod PB;Corte;Fecha en la que ese producto estaba disponible a esa tasa.
+VIS;Tasas Prod PB;Duracion;Duración en días para vender el producto (corto plazo).
+VIS;Tasas Prod PB;Moneda;Moneda en la que se haría la inversión.
+VIS;Tasas Prod PB;Producto;Producto de inversión. Nombre genérico.
+VIS;Tasas Prod PB;Tasa;Tipo: decimal. Ejemplo: 4 Tasa de rendimiento según producto/moneda/monto/plazo.
+VIS;Tasas Prod PB;Valor;Monto umbral para el que aplica esa tasa. Normalmente, a mayor monto, mejor rendimiento.
+VIS;Tasas Titulos PB;Corte;Fecha en la que ese producto estaba disponible a esa tasa.
+VIS;Tasas Titulos PB;Emisor;Entidad emisora del título.
+VIS;Tasas Titulos PB;Moneda;Moneda en la que se haría la inversión.
+VIS;Tasas Titulos PB;Precio de Compra;Precio Bid del título.
+VIS;Tasas Titulos PB;Precio de Venta;Precio Offer del título.
+VIS;Tasas Titulos PB;Tipo;Tipo de título. En este dataset: RETAIL.
+VIS;Tasas Titulos PB;Vencimiento;Fecha en la que el título paga su valor nominal.
