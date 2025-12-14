@@ -27,20 +27,23 @@ def history():
 
     return render_template('savings_history.html', savings=savings, total_savings=total_savings)
 
-@savings_bp.route('/add', methods=['POST'])
+@savings_bp.route('/add', methods=['GET','POST'])
 @login_required
 def add():
-    user_id = session['user']
-    
+    if request.method == 'GET':
+        return render_template('add_saving.html')
+    user_id = session['user']    
     goal_name = request.form.get('goal_name')
     goal_amount = float(request.form.get('goal_amount'))
     target_date = request.form.get('target_date', datetime.now().strftime('%Y-%m-%d'))
-
     try:
         data = {
             'goal_name': goal_name,
             'goal_amount': goal_amount,
+            "saved_amount": 0,
+            "achieved" : False,
             'target_date': target_date,
+            'monthly_commitment': 0,
             'created_at': datetime.now()
         }
         db.collection('users').document(user_id).collection('savings').add(data)
