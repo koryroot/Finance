@@ -1,0 +1,51 @@
+
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from datetime import datetime
+from firebase_config import db
+from .auth import login_required
+
+savings_bp = Blueprint('savings', __name__, template_folder='../templates')
+
+@savings_bp.route('/history')
+@login_required
+def history():
+    user_id = session['user']
+    
+    # Obtenemos todos los ahorros registrados
+    savings_ref = db.collection('users').document(user_id).collection('savings')
+    docs = savings_ref.stream()
+    
+    savings = []
+    total_savings = 0
+
+    for doc in docs:
+        data = doc.to_dict()
+        data['id'] = doc.id
+        amount = data.get('goal_amount', 0)
+        total_savings += amount
+        savings.append(data)
+
+    return render_template('savings_history.html', savings=savings, total_savings=total_savings)
+
+@savings_bp.route('/add', methods=['POST'])
+@login_required
+def add():
+    user_id = session['user']
+    
+    goal_name = request.form.get('goal_name')
+    goal_amount = float(request.form.get('goal_amount'))
+    target_date = request.form.get('target_date', datetime.now().strftime('%Y-%m-%d'))
+
+    try:
+        data = {
+            'goal_name': goal_name,
+            'goal_amount': goal_amount,
+            'target_date': target_date,
+            'created_at': datetime.now()
+        }
+        db.collection('users').document(user_id).collection('savings').add(data)
+        flash('Ahorro agregado exitosamente.', 'success')
+    except Exception as e:
+        flash(f'Error al agregar el ahorro: {e}', 'danger')
+
+    return redirect(url_for('savings.history'))
