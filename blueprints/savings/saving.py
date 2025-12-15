@@ -35,6 +35,7 @@ def add():
     user_id = session['user']    
     goal_name = request.form.get('goal_name')
     goal_amount = float(request.form.get('goal_amount'))
+    have__Money_commitment = bool(request.form.get('have__Money_commitment'))
     target_date = request.form.get('target_date', datetime.now().strftime('%Y-%m-%d'))
     try:
         data = {
@@ -43,7 +44,7 @@ def add():
             "saved_amount": 0,
             "achieved" : False,
             'target_date': target_date,
-            'monthly_commitment': 0,
+            'monthly_commitment': calculate_monthly_commitment(goal_amount, target_date) if have__Money_commitment else 0,
             'created_at': datetime.now()
         }
         db.collection('users').document(user_id).collection('savings').add(data)
@@ -52,3 +53,11 @@ def add():
         flash(f'Error al agregar el ahorro: {e}', 'danger')
 
     return redirect(url_for('savings.history'))
+
+def calculate_monthly_commitment(goal_amount, target_date):
+    now = datetime.now()
+    target = datetime.strptime(target_date, '%Y-%m-%d')
+    months_diff = (target.year - now.year) * 12 + (target.month - now.month)
+    if months_diff <= 0:
+        return goal_amount  # Si la fecha objetivo ya pasó o es este mes, se debe ahorrar todo de inmediato
+    return goal_amount / months_diff
