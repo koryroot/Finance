@@ -21,7 +21,7 @@ def history():
     for doc in docs:
         data = doc.to_dict()
         data['id'] = doc.id
-        amount = data.get('goal_amount', 0)
+        amount = data.get('saved_amount', 0)
         total_savings += amount
         savings.append(data)
 
@@ -53,6 +53,36 @@ def add():
         flash(f'Error al agregar el ahorro: {e}', 'danger')
 
     return redirect(url_for('savings.history'))
+
+@savings_bp.route('/pay', methods=['POST'])
+@login_required
+def pay():
+    user_id = session['user']
+    saving_id = request.form.get('saving_id')
+    payment_amount = float(request.form.get('payment_amount'))
+
+    saving_ref = db.collection('users').document(user_id).collection('savings').document(saving_id)
+    saving_doc = saving_ref.get()
+
+    if not saving_doc.exists:
+        flash('Ahorro no encontrado.', 'danger')
+        return redirect(url_for('savings.history'))
+
+    saving_data = saving_doc.to_dict()
+    new_saved_amount = saving_data.get('saved_amount', 0) + payment_amount
+    achieved = new_saved_amount >= saving_data.get('goal_amount', 0)
+
+    try:
+        saving_ref.update({
+            'saved_amount': new_saved_amount,
+            'achieved': achieved
+        })
+        flash('Pago registrado exitosamente.', 'success')
+    except Exception as e:
+        flash(f'Error al registrar el pago: {e}', 'danger')
+
+    return redirect(url_for('savings.history'))
+
 
 def calculate_monthly_commitment(goal_amount, target_date):
     now = datetime.now()
