@@ -21,17 +21,24 @@
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                         <span class="text-xs mt-1">Panel</span>
                     </a>
-                    <a href="{{ url_for('main.budget') }}" class="flex flex-col items-center p-3 rounded-2xl {{ 'bg-blue-600 text-white' if 'budget' in request.endpoint else 'text-gray-400 hover:bg-gray-700' }}">
+                    <a href="{{ url_for('budget.planner') }}" class="flex flex-col items-center p-3 rounded-2xl {{ 'bg-blue-600 text-white' if 'budget' in request.endpoint else 'text-gray-400 hover:bg-gray-700' }}">
                          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 20v-6M6 20v-2M18 20v-4"/><path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/><path d="M6 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/><path d="M18 16a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/></svg>
                         <span class="text-xs mt-1">Presup.</span>
                     </a>
-                    <a href="{{ url_for('main.savings') }}" class="flex flex-col items-center p-3 rounded-2xl {{ 'bg-blue-600 text-white' if 'savings' in request.endpoint else 'text-gray-400 hover:bg-gray-700' }}">
+                    <!-- <a href="{{ url_for('main.savings') }}" class="flex flex-col items-center p-3 rounded-2xl {{ 'bg-blue-600 text-white' if 'savings' in request.endpoint else 'text-gray-400 hover:bg-gray-700' }}">
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 2H9a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z"/><path d="M12 18h.01"/></svg>
                         <span class="text-xs mt-1">Ahorro</span>
                     </a>
                     <a href="{{ url_for('main.charts') }}" class="flex flex-col items-center p-3 rounded-2xl {{ 'bg-blue-600 text-white' if 'charts' in request.endpoint else 'text-gray-400 hover:bg-gray-700' }}">
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
                         <span class="text-xs mt-1">Gráficos</span>
+                    </a> -->
+
+                    <a href="{{ url_for('learning.index') }}" class="flex flex-col items-center py-3 text-gray-400 hover:text-yellow-400 transition-colors group">
+                        <svg class="w-7 h-7 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                        <span class="text-xs mt-1 font-medium">Aprende</span>
                     </a>
                     <div class="flex-grow"></div>
                     <!-- CAMBIO 2: Actualizamos la ruta de logout para apuntar al blueprint 'auth' -->
@@ -39,6 +46,8 @@
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                         <span class="text-xs mt-1">Salir</span>
                     </a>
+
+                    
                 </div>
             </nav>
             {% endif %}

@@ -10,3 +10,5 @@ firebase_credentials.json
 *.idea
 *.iml
 *.pyc       
+venv/
+env/
