@@ -15,6 +15,10 @@ import firebase_config
 # Importa los blueprints que contienen las rutas de la aplicación.
 from blueprints.auth import auth_bp
 from blueprints.main import main_bp
+from blueprints.income import income_bp  
+from blueprints.expenses import expenses_bp     
+from blueprints.budget import budget_bp
+from blueprints.learning import learning_bp
 
 # Inicializa la aplicación Flask
 app = Flask(__name__)
@@ -44,7 +48,14 @@ def number_format(value):
 # Registra los blueprints en la aplicación, asignando un prefijo a sus URLs.
 # Todas las rutas en auth.py comenzarán con /auth
 app.register_blueprint(auth_bp, url_prefix='/auth')
+
+# --- NUEVO: Rutas de ingresos (ej. /income/history) ---
+app.register_blueprint(income_bp, url_prefix='/income')
+# --- NUEVO: Rutas de gastos (ej. /expenses/history) ---
+app.register_blueprint(expenses_bp, url_prefix='/expenses')
 # Todas las rutas en main.py estarán en la raíz del sitio.
+app.register_blueprint(budget_bp, url_prefix='/budget')
+app.register_blueprint(learning_bp, url_prefix='/learning') 
 app.register_blueprint(main_bp, url_prefix='/')
 
 

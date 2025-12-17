@@ -1,0 +1,219 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-8 pb-24">
+    
+    <div class="sticky top-0 bg-gray-900/95 backdrop-blur-md z-40 py-4 border-b border-gray-800 -mx-4 px-4 md:mx-0 md:px-0 mb-6">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold text-white">Planificación de {{ month_name }}</h1>
+                <p class="text-gray-400 text-sm">Organiza tu dinero según tus propias reglas.</p>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <button onclick="document.getElementById('rulesModal').classList.remove('hidden')" class="text-gray-400 hover:text-white text-sm font-medium flex items-center gap-1 border border-gray-600 px-3 py-2 rounded-lg hover:bg-gray-800 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    Ajustar Porcentajes
+                </button>
+
+                <div class="bg-gray-800 px-5 py-2 rounded-xl border border-gray-700 shadow-lg text-right">
+                    <p class="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Ingreso Disponible</p>
+                    <p class="text-xl font-bold text-green-400">RD$ {{ total_income|number_format }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form action="{{ url_for('budget.planner') }}" method="POST" id="budgetForm">
+        <div class="space-y-8">
+            
+            {% for cat in categories %}
+            {% set percent_spent = (cat.spent_real / cat.planned_total * 100) if cat.planned_total > 0 else 0 %}
+            
+            <div class="bg-gray-800 rounded-2xl shadow-xl border border-gray-700 overflow-hidden category-card" data-cat-id="{{ cat.id }}">
+                
+                <div class="p-6 bg-gray-900/40 border-b border-gray-700">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-4 h-4 rounded-full shadow-lg" style="background-color: {{ cat.color }}"></div>
+                            <div>
+                                <h3 class="text-xl font-bold text-white">{{ cat.name }}</h3>
+                                <p class="text-xs text-gray-500">Tu límite ({{ cat.percent }}%): RD$ {{ cat.rule_limit|number_format }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="text-right">
+                            <p class="text-xs text-gray-400 uppercase mb-1">Gastado vs Planeado</p>
+                            <div class="flex flex-col items-end">
+                                <span class="text-xl font-bold {{ 'text-red-400' if cat.spent_real > cat.planned_total else 'text-white' }}">
+                                    RD$ {{ cat.spent_real|number_format }}
+                                </span>
+                                <span class="text-xs text-gray-500">
+                                    de RD$ <span class="planned-total-display">{{ cat.planned_total|number_format }}</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="relative w-full h-4 bg-gray-700 rounded-full overflow-hidden shadow-inner">
+                        <div class="absolute top-0 left-0 h-full transition-all duration-1000 ease-out {{ 'bg-red-500' if percent_spent > 100 else 'bg-green-500' }}" 
+                             style="width: {{ [percent_spent, 100]|min }}%">
+                        </div>
+                    </div>
+                    
+                    <div class="mt-2 flex justify-between text-xs font-medium">
+                        <span class="text-gray-400">{{ percent_spent|round(1) }}% Ejecutado</span>
+                        {% if cat.spent_real > cat.planned_total %}
+                            <span class="text-red-400">⚠️ Excedido por RD$ {{ (cat.spent_real - cat.planned_total)|number_format }}</span>
+                        {% else %}
+                            <span class="text-green-400">Disponible: RD$ {{ (cat.planned_total - cat.spent_real)|number_format }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="p-6 bg-gray-800">
+                    <div class="items-container space-y-3" id="container_{{ cat.id }}">
+                        {% if cat.saved_items %}
+                            {% for item in cat.saved_items %}
+                            <div class="flex gap-3 item-row group">
+                                <input type="text" name="desc_{{ cat.id }}[]" value="{{ item.name }}" class="flex-1 bg-gray-900 text-white p-3 rounded-lg border border-gray-700 focus:border-blue-500 outline-none text-sm" required>
+                                <div class="relative w-32 md:w-40">
+                                    <span class="absolute left-3 top-3 text-gray-500 text-sm">RD$</span>
+                                    <input type="number" step="0.01" name="amount_{{ cat.id }}[]" value="{{ item.amount }}" class="w-full bg-gray-900 text-white p-3 pl-10 rounded-lg border border-gray-700 focus:border-blue-500 outline-none text-sm text-right amount-input" oninput="recalcLocalTotal('{{ cat.id }}')" required>
+                                </div>
+                                <button type="button" onclick="removeRow(this, '{{ cat.id }}')" class="text-gray-600 hover:text-red-400 p-2 opacity-0 group-hover:opacity-100 transition-opacity"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="flex gap-3 item-row group">
+                                <input type="text" name="desc_{{ cat.id }}[]" placeholder="Ej. Alquiler" class="flex-1 bg-gray-900 text-white p-3 rounded-lg border border-gray-700 focus:border-blue-500 outline-none text-sm">
+                                <div class="relative w-32 md:w-40">
+                                    <span class="absolute left-3 top-3 text-gray-500 text-sm">RD$</span>
+                                    <input type="number" step="0.01" name="amount_{{ cat.id }}[]" placeholder="0.00" class="w-full bg-gray-900 text-white p-3 pl-10 rounded-lg border border-gray-700 focus:border-blue-500 outline-none text-sm text-right amount-input" oninput="recalcLocalTotal('{{ cat.id }}')">
+                                </div>
+                                <button type="button" onclick="removeRow(this, '{{ cat.id }}')" class="text-gray-600 hover:text-red-400 p-2">&times;</button>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <button type="button" onclick="addRow('{{ cat.id }}')" class="mt-4 flex items-center text-sm text-blue-400 hover:text-blue-300 font-medium transition-colors">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg> Añadir item
+                    </button>
+                    <div class="mt-4 pt-4 border-t border-gray-700 flex justify-between items-center text-sm">
+                        <span class="text-gray-400">Total Planificado:</span>
+                        <span class="font-bold text-white cat-total-live">RD$ {{ cat.planned_total|number_format }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+        </div>
+
+        <div class="fixed bottom-6 right-6 md:right-10 z-30">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-8 rounded-full shadow-2xl flex items-center gap-2 transform hover:scale-105 transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                Guardar Planificación
+            </button>
+        </div>
+    </form>
+</div>
+
+<div id="rulesModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-gray-800 rounded-2xl w-full max-w-md border border-gray-700 shadow-2xl transform transition-all">
+        <form action="{{ url_for('budget.update_rules') }}" method="POST" class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-white">Configurar mis Reglas</h3>
+                <button type="button" onclick="document.getElementById('rulesModal').classList.add('hidden')" class="text-gray-400 hover:text-white">&times;</button>
+            </div>
+            
+            <p class="text-sm text-gray-400 mb-4">Define qué porcentaje de tus ingresos quieres destinar a cada categoría.</p>
+
+            <div class="space-y-4">
+                {% for cat in categories %}
+                <div>
+                    <label class="flex justify-between text-sm text-white mb-1">
+                        <span>{{ cat.name }}</span>
+                        <span class="text-gray-400" id="label_pct_{{cat.id}}">{{ cat.percent }}%</span>
+                    </label>
+                    <div class="flex items-center gap-3">
+                        <input type="range" name="rule_percent_{{ cat.id }}" value="{{ cat.percent }}" min="0" max="100" 
+                               class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                               oninput="document.getElementById('label_pct_{{cat.id}}').innerText = this.value + '%'; checkSum()">
+                        <input type="number" value="{{ cat.percent }}" min="0" max="100" 
+                               class="w-16 bg-gray-900 text-white text-center p-1 rounded border border-gray-600 text-sm"
+                               oninput="this.previousElementSibling.value = this.value; document.getElementById('label_pct_{{cat.id}}').innerText = this.value + '%'; checkSum()">
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-gray-700">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-sm text-gray-400">Total:</span>
+                    <span id="totalPercentDisplay" class="font-bold text-white">100%</span>
+                </div>
+                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition">
+                    Guardar Nuevas Reglas
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Validar suma del 100% en el modal visualmente
+    function checkSum() {
+        const inputs = document.querySelectorAll('#rulesModal input[type="range"]');
+        let total = 0;
+        inputs.forEach(i => total += parseInt(i.value) || 0);
+        
+        const display = document.getElementById('totalPercentDisplay');
+        display.innerText = total + '%';
+        
+        if (total !== 100) {
+            display.classList.remove('text-green-400');
+            display.classList.add('text-yellow-400');
+        } else {
+            display.classList.remove('text-yellow-400');
+            display.classList.add('text-green-400');
+        }
+    }
+
+    // Funciones anteriores (addRow, removeRow, recalcLocalTotal) se mantienen igual...
+    function addRow(catId) {
+        const container = document.getElementById(`container_${catId}`);
+        const div = document.createElement('div');
+        div.className = 'flex gap-3 item-row group animate-fade-in mb-3';
+        div.innerHTML = `
+            <input type="text" name="desc_${catId}[]" placeholder="Nuevo item..." class="flex-1 bg-gray-900 text-white p-3 rounded-lg border border-gray-700 focus:border-blue-500 outline-none text-sm transition-all" required>
+            <div class="relative w-32 md:w-40">
+                <span class="absolute left-3 top-3 text-gray-500 text-sm">RD$</span>
+                <input type="number" step="0.01" name="amount_${catId}[]" placeholder="0.00" class="w-full bg-gray-900 text-white p-3 pl-10 rounded-lg border border-gray-700 focus:border-blue-500 outline-none text-sm text-right amount-input" oninput="recalcLocalTotal('${catId}')" required>
+            </div>
+            <button type="button" onclick="removeRow(this, '${catId}')" class="text-gray-600 hover:text-red-400 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
+        `;
+        container.appendChild(div);
+    }
+
+    function removeRow(btn, catId) {
+        const row = btn.parentElement;
+        if (btn.closest('.items-container').children.length > 1) {
+            row.remove();
+        } else {
+            row.querySelectorAll('input').forEach(i => i.value = '');
+        }
+        recalcLocalTotal(catId);
+    }
+
+    function recalcLocalTotal(catId) {
+        const container = document.getElementById(`container_${catId}`);
+        const inputs = container.querySelectorAll('.amount-input');
+        let total = 0;
+        inputs.forEach(input => total += parseFloat(input.value) || 0);
+        const card = document.querySelector(`.category-card[data-cat-id="${catId}"]`);
+        card.querySelector('.cat-total-live').textContent = 'RD$ ' + total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+
+    document.addEventListener('DOMContentLoaded', checkSum);
+</script>
+{% endblock %}
