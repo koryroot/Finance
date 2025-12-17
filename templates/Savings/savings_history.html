@@ -1,0 +1,94 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="space-y-6">
+
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-white">Mis Ahorros</h1>
+            <p class="text-gray-400">Gestiona tus metas de ahorro</p>
+        </div>
+        <a href="{{ url_for('main.dashboard') }}" class="text-gray-400 hover:text-white transition">
+            &larr; Volver al Panel
+        </a>
+    </div>
+
+    <div class="bg-gradient-to-r from-blue-900 to-gray-800 p-6 rounded-2xl flex justify-between items-center border border-blue-800">
+        <div>
+            <p class="text-blue-400 font-bold uppercase text-xs tracking-wider">
+                Total Ahorrado
+            </p>
+            <h2 class="text-3xl font-extrabold text-white">
+                RD$ {{ total_savings|number_format }}
+            </h2>
+        </div>
+        <div class="flex gap-3">
+            <a href="{{ url_for('savings.add') }}"
+               class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition">
+                + Nuevo Ahorro
+            </a>
+            <a href="{{ url_for('savings.pay') }}"
+               class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold transition">
+                Registrar Pago
+            </a>
+        </div>
+    </div>
+
+    <div class="bg-gray-800 rounded-2xl overflow-hidden shadow-lg">
+        <table class="w-full text-left text-gray-400">
+            <thead class="bg-gray-700 text-gray-200 uppercase text-xs">
+                <tr>
+                    <th class="p-4">Meta</th>
+                    <th class="p-4">Objetivo</th>
+                    <th class="p-4">Ahorrado</th>
+                    <th class="p-4">Estado</th>
+                    <th class="p-4">Acción</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-700">
+                {% for s in savings %}
+                <tr class="hover:bg-gray-700 transition">
+                    <td class="p-4 text-white font-medium">{{ s.goal_name }}</td>
+                    <td class="p-4 text-blue-400 font-bold">
+                        RD$ {{ s.goal_amount|number_format }}
+                    </td>
+                    <td class="p-4 text-green-400 font-bold">
+                        RD$ {{ s.saved_amount|number_format }}
+                    </td>
+                    <td class="p-4">
+                        {% if s.achieved %}
+                            <span class="px-2 py-1 text-xs rounded bg-green-900 text-green-300">
+                                Completado
+                            </span>
+                        {% else %}
+                            <span class="px-2 py-1 text-xs rounded bg-yellow-900 text-yellow-300">
+                                En progreso
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4">
+                        {% if not s.achieved %}
+                        <a href="{{ url_for('savings.pay', saving_id=s.id) }}"
+                        class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-lg text-sm font-semibold transition">
+                            Abonar
+                        </a>
+                        {% else %}
+                        <span class="text-green-400 text-sm font-semibold">
+                            ✔ Completado
+                        </span>
+                        {% endif %}
+                    </td>
+
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="p-8 text-center text-gray-500">
+                        No tienes metas de ahorro registradas.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}
