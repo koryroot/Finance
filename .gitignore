@@ -9,4 +9,5 @@ firebase_credentials.json
 *.vscode
 *.idea
 *.iml
-*.pyc       
+*.pyc
+venv/
