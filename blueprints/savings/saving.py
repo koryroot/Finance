@@ -54,11 +54,14 @@ def add():
 
     return redirect(url_for('savings.history'))
 
-@savings_bp.route('/pay', methods=['POST'])
+@savings_bp.route('/pay/<saving_id>', methods=['GET', 'POST'])
 @login_required
-def pay():
+def pay(saving_id):
     user_id = session['user']
-    saving_id = request.form.get('saving_id')
+
+    if request.method == 'GET':
+        return render_template('pay_saving.html', saving_id=saving_id)
+
     payment_amount = float(request.form.get('payment_amount'))
 
     saving_ref = db.collection('users').document(user_id).collection('savings').document(saving_id)
