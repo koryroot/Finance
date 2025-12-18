@@ -17,43 +17,43 @@ import os
 import json
 from dotenv import load_dotenv
 
-# Cargar variables de entorno desde el archivo .env (esto solo funcionará localmente)
+# Cargar variables de entorno local (.env)
 load_dotenv()
 
 def initialize_firebase():
     """
-    Inicializa la conexión con Firebase Admin SDK de forma inteligente.
-    Primero, intenta usar las credenciales desde una variable de entorno (para Heroku).
-    Si no la encuentra, recurre a la ruta del archivo (para desarrollo local).
+    Inicializa Firebase de forma inteligente para Local o Render.
     """
     try:
-        # MÉTODO PARA HEROKU: Leer las credenciales desde una variable de entorno
+        # 1. Intentar modo Producción (Render)
+        # Asegúrate de llamar a la variable igual en el panel de Render
         creds_json_str = os.getenv("FIREBASE_CREDENTIALS_JSON")
+        
         if creds_json_str:
             creds_dict = json.loads(creds_json_str)
             cred = credentials.Certificate(creds_dict)
-            print("Firebase inicializado desde variable de entorno (modo Heroku).")
+            print("Conectado: Modo Producción (Render).")
         else:
-            # MÉTODO LOCAL: Leer las credenciales desde una ruta de archivo
+            # 2. Intentar modo Local
             cred_path = os.getenv("FIREBASE_CREDENTIALS_PATH")
             if not cred_path:
-                raise ValueError("No se encontró FIREBASE_CREDENTIALS_JSON ni FIREBASE_CREDENTIALS_PATH.")
+                raise ValueError("Faltan variables: FIREBASE_CREDENTIALS_JSON o FIREBASE_CREDENTIALS_PATH")
+            
             cred = credentials.Certificate(cred_path)
-            print("Firebase inicializado desde ruta de archivo (modo local).")
+            print("Conectado: Modo Local (PC).")
 
-        # Prevenir la reinicialización de la app de Firebase
+        # Inicializar solo si no existe una app activa
         if not firebase_admin._apps:
             firebase_admin.initialize_app(cred)
-        
-        print("Firebase App inicializada exitosamente.")
+            print("Firebase App inicializada con éxito.")
 
     except Exception as e:
-        print(f"Error CRÍTICO al inicializar Firebase: {e}")
+        print(f"ERROR CRÍTICO: No se pudo conectar a Firebase: {e}")
 
-# Llama a la función para asegurar que Firebase se inicialice al importar este módulo.
+# Ejecutar inicialización
 initialize_firebase()
 
-# Exporta los clientes de auth y firestore para usarlos en otras partes de la app
+# Exportar herramientas (Firestore y Auth)
 db = firestore.client()
 firebase_auth = auth
 
