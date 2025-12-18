@@ -69,41 +69,5 @@
         </div>
     </div>
 
-    <hr class="border-gray-800">
-
-    <div>
-        <h2 class="text-2xl font-bold text-white mb-6">Gráficas de Benchmarking</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="aspect-video rounded-xl overflow-hidden">
-                <img src="../images/comparacion_modelos.png" class="w-full h-full object-cover" />
-            </div>
-            <div class="aspect-video rounded-xl overflow-hidden">
-                <img src="../images/comparacion_modelos.png" class="w-full h-full object-cover" />
-            </div>
-            <div class="aspect-video rounded-xl overflow-hidden">
-                <img src="../images/comparacion_modelos.png" class="w-full h-full object-cover" />
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {% for mod in modules %}
-            <a href="{{ url_for('learning.lesson_detail', slug=mod.slug) }}"
-                class="block bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-gray-500 transition-all hover:bg-gray-750">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="text-3xl bg-gray-900 w-12 h-12 flex items-center justify-center rounded-xl">
-                        {{ mod.icon }}
-                    </div>
-                    <span
-                        class="text-[10px] font-bold px-2 py-1 rounded bg-gray-700 text-{{ mod.color }}-400 uppercase">
-                        {{ mod.level }}
-                    </span>
-                </div>
-                <h3 class="text-lg font-bold text-white mb-2">{{ mod.title }}</h3>
-                <div class="text-sm text-blue-400 hover:underline">Leer lección &rarr;</div>
-            </a>
-            {% endfor %}
-        </div>
-    </div>
-
 </div>
 {% endblock %}
