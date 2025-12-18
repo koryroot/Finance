@@ -4,7 +4,7 @@ from flask import Flask, session, redirect, url_for, render_template
 from dotenv import load_dotenv
 import os
 import locale
-
+from blueprints.savings.saving import savings_bp
 # Carga las variables de entorno desde el archivo .env
 load_dotenv()
 
@@ -57,7 +57,7 @@ app.register_blueprint(expenses_bp, url_prefix='/expenses')
 app.register_blueprint(budget_bp, url_prefix='/budget')
 app.register_blueprint(learning_bp, url_prefix='/learning') 
 app.register_blueprint(main_bp, url_prefix='/')
-
+app.register_blueprint(savings_bp, url_prefix='/savings')
 
 # --- RUTA PRINCIPAL ---
 
