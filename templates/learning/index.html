@@ -1,34 +1,43 @@
 {% extends "layout.html" %}
 {% block content %}
 <div class="space-y-12 pb-20">
-    
+
     <div class="text-center space-y-4">
         <h1 class="text-4xl font-bold text-white">Centro de Aprendizaje Financiero</h1>
-        <p class="text-gray-400 max-w-2xl mx-auto">Domina el arte de invertir combinando teoría, práctica y tecnología avanzada.</p>
+        <p class="text-gray-400 max-w-2xl mx-auto">Domina el arte de invertir combinando teoría, práctica y tecnología
+            avanzada.</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        
-        <a href="{{ url_for('learning.test_ia') }}" class="group relative bg-gradient-to-br from-purple-900/50 to-blue-900/50 rounded-3xl p-8 border border-purple-500/30 hover:border-purple-400 transition-all overflow-hidden shadow-2xl">
-            <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-purple-500 rounded-full opacity-20 blur-2xl group-hover:opacity-30 transition"></div>
-            
+
+        <a href="{{ url_for('learning.test_ia') }}"
+            class="group relative bg-gradient-to-br from-purple-900/50 to-blue-900/50 rounded-3xl p-8 border border-purple-500/30 hover:border-purple-400 transition-all overflow-hidden shadow-2xl">
+            <div
+                class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-purple-500 rounded-full opacity-20 blur-2xl group-hover:opacity-30 transition">
+            </div>
+
             <div class="relative z-10">
                 <div class="text-4xl mb-4">🤖</div>
                 <h3 class="text-2xl font-bold text-white mb-2">Analista de Perfil con IA</h3>
-                <p class="text-gray-300 mb-6">Nuestra Inteligencia Artificial analiza tus datos y predice tu perfil de riesgo ideal.</p>
+                <p class="text-gray-300 mb-6">Nuestra Inteligencia Artificial analiza tus datos y predice tu perfil de
+                    riesgo ideal.</p>
                 <span class="inline-flex items-center text-purple-300 font-bold group-hover:text-white transition">
                     Probar ahora &rarr;
                 </span>
             </div>
         </a>
 
-        <a href="{{ url_for('learning.simulator') }}" class="group relative bg-gradient-to-br from-green-900/50 to-teal-900/50 rounded-3xl p-8 border border-green-500/30 hover:border-green-400 transition-all overflow-hidden shadow-2xl">
-            <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-green-500 rounded-full opacity-20 blur-2xl group-hover:opacity-30 transition"></div>
-            
+        <a href="{{ url_for('learning.simulator') }}"
+            class="group relative bg-gradient-to-br from-green-900/50 to-teal-900/50 rounded-3xl p-8 border border-green-500/30 hover:border-green-400 transition-all overflow-hidden shadow-2xl">
+            <div
+                class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-green-500 rounded-full opacity-20 blur-2xl group-hover:opacity-30 transition">
+            </div>
+
             <div class="relative z-10">
                 <div class="text-4xl mb-4">📈</div>
                 <h3 class="text-2xl font-bold text-white mb-2">Simulador de Mercado</h3>
-                <p class="text-gray-300 mb-6">Viaja al pasado y toma decisiones de inversión con noticias reales. ¿Ganarás o perderás?</p>
+                <p class="text-gray-300 mb-6">Viaja al pasado y toma decisiones de inversión con noticias reales.
+                    ¿Ganarás o perderás?</p>
                 <span class="inline-flex items-center text-green-300 font-bold group-hover:text-white transition">
                     Jugar ahora &rarr;
                 </span>
@@ -42,12 +51,14 @@
         <h2 class="text-2xl font-bold text-white mb-6">Biblioteca de Conceptos</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             {% for mod in modules %}
-            <a href="{{ url_for('learning.lesson_detail', slug=mod.slug) }}" class="block bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-gray-500 transition-all hover:bg-gray-750">
+            <a href="{{ url_for('learning.lesson_detail', slug=mod.slug) }}"
+                class="block bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-gray-500 transition-all hover:bg-gray-750">
                 <div class="flex justify-between items-start mb-4">
                     <div class="text-3xl bg-gray-900 w-12 h-12 flex items-center justify-center rounded-xl">
                         {{ mod.icon }}
                     </div>
-                    <span class="text-[10px] font-bold px-2 py-1 rounded bg-gray-700 text-{{ mod.color }}-400 uppercase">
+                    <span
+                        class="text-[10px] font-bold px-2 py-1 rounded bg-gray-700 text-{{ mod.color }}-400 uppercase">
                         {{ mod.level }}
                     </span>
                 </div>
@@ -62,14 +73,28 @@
 
     <div>
         <h2 class="text-2xl font-bold text-white mb-6">Gráficas de Benchmarking</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="aspect-video rounded-xl overflow-hidden">
+                <img src="../images/comparacion_modelos.png" class="w-full h-full object-cover" />
+            </div>
+            <div class="aspect-video rounded-xl overflow-hidden">
+                <img src="../images/comparacion_modelos.png" class="w-full h-full object-cover" />
+            </div>
+            <div class="aspect-video rounded-xl overflow-hidden">
+                <img src="../images/comparacion_modelos.png" class="w-full h-full object-cover" />
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             {% for mod in modules %}
-            <a href="{{ url_for('learning.lesson_detail', slug=mod.slug) }}" class="block bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-gray-500 transition-all hover:bg-gray-750">
+            <a href="{{ url_for('learning.lesson_detail', slug=mod.slug) }}"
+                class="block bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-gray-500 transition-all hover:bg-gray-750">
                 <div class="flex justify-between items-start mb-4">
                     <div class="text-3xl bg-gray-900 w-12 h-12 flex items-center justify-center rounded-xl">
                         {{ mod.icon }}
                     </div>
-                    <span class="text-[10px] font-bold px-2 py-1 rounded bg-gray-700 text-{{ mod.color }}-400 uppercase">
+                    <span
+                        class="text-[10px] font-bold px-2 py-1 rounded bg-gray-700 text-{{ mod.color }}-400 uppercase">
                         {{ mod.level }}
                     </span>
                 </div>
