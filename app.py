@@ -9,7 +9,6 @@ from blueprints.savings.saving import savings_bp
 load_dotenv()
 
 # Importa el módulo de configuración para inicializar Firebase al arrancar.
-# Esta es la única línea necesaria para la conexión.
 import firebase_config
 
 # Importa los blueprints que contienen las rutas de la aplicación.
@@ -28,14 +27,16 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
 # --- CONFIGURACIONES GLOBALES ---
 
-# Configura el locale para que las fechas (como los meses) se muestren en español.
+# Configura el locale para que las fechas se muestren en español (ajustado para Render/Linux)
 try:
     locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
 except locale.Error:
-    locale.setlocale(locale.LC_TIME, 'Spanish')
+    try:
+        locale.setlocale(locale.LC_TIME, 'Spanish')
+    except:
+        pass
 
 # Registra un filtro de plantilla personalizado para formatear números como moneda.
-# Este filtro estará disponible en todos tus archivos HTML.
 @app.template_filter('number_format')
 def number_format(value):
     try:
@@ -45,15 +46,9 @@ def number_format(value):
 
 # --- REGISTRO DE BLUEPRINTS ---
 
-# Registra los blueprints en la aplicación, asignando un prefijo a sus URLs.
-# Todas las rutas en auth.py comenzarán con /auth
 app.register_blueprint(auth_bp, url_prefix='/auth')
-
-# --- NUEVO: Rutas de ingresos (ej. /income/history) ---
 app.register_blueprint(income_bp, url_prefix='/income')
-# --- NUEVO: Rutas de gastos (ej. /expenses/history) ---
 app.register_blueprint(expenses_bp, url_prefix='/expenses')
-# Todas las rutas en main.py estarán en la raíz del sitio.
 app.register_blueprint(budget_bp, url_prefix='/budget')
 app.register_blueprint(learning_bp, url_prefix='/learning') 
 app.register_blueprint(main_bp, url_prefix='/')
@@ -64,8 +59,7 @@ app.register_blueprint(savings_bp, url_prefix='/savings')
 @app.route('/')
 def index():
     """
-    Ruta principal que redirige al dashboard si el usuario ya ha iniciado sesión,
-    o muestra la página de bienvenida (landing) si no lo ha hecho.
+    Ruta principal que redirige al dashboard si el usuario ya ha iniciado sesión.
     """
     if 'user' in session:
         return redirect(url_for('main.dashboard'))
@@ -73,7 +67,7 @@ def index():
 
 
 if __name__ == '__main__':
-    # Ejecuta la aplicación en modo debug.
-    # El puerto 5001 es útil si ya tienes otro proyecto corriendo en el 5000.
+    # Render usará Gunicorn, pero esto te permite seguir probando en tu PC en el puerto 5001.
     app.run(debug=True, port=5001)
+
 # --- FIN DEL ARCHIVO app.py ---

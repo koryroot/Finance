@@ -1,0 +1,128 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="max-w-4xl mx-auto pb-20">
+
+    <div class="text-center mb-12 space-y-4">
+        <h1 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+            Analista de Riesgo con IA
+        </h1>
+        <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+            Nuestra Inteligencia Artificial ha sido entrenada con miles de perfiles históricos.
+            Ingresa tus datos y descubre cuál es tu perfil de inversor ideal.
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+        
+        <div class="md:col-span-2 bg-gray-800 rounded-2xl p-8 border border-gray-700 shadow-xl">
+            <form method="POST" action="{{ url_for('learning.test_ia') }}" class="space-y-6">
+                
+                <div>
+                    <label class="block text-sm font-bold text-gray-300 mb-2">Edad</label>
+                    <input type="number" name="edad" required min="18" max="100" placeholder="Ej: 25"
+                           class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-300 mb-2">Sexo</label>
+                        <select name="sexo" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-3 text-white focus:border-blue-500 outline-none appearance-none">
+                            {% for op in opciones['sexo'] %}
+                                <option value="{{ op }}">{{ op }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-300 mb-2">Nacionalidad</label>
+                        <select name="nacionalidad" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-3 text-white focus:border-blue-500 outline-none appearance-none">
+                            {% for op in opciones['nacionalidad'] %}
+                                <option value="{{ op }}">{{ op }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-300 mb-2">Promedio de Ingresos Anuales</label>
+                    <select name="ingresos" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-3 text-white focus:border-blue-500 outline-none appearance-none">
+                        {% for op in opciones['ingresos'] %}
+                            <option value="{{ op }}">{{ op }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-300 mb-2">Nivel de Conocimiento</label>
+                        <select name="conocimiento" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-3 text-white focus:border-blue-500 outline-none appearance-none">
+                            {% for op in opciones['conocimiento'] %}
+                                <option value="{{ op }}">{{ op }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-300 mb-2">Estado Laboral</label>
+                        <select name="laboral" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-3 text-white focus:border-blue-500 outline-none appearance-none">
+                            {% for op in opciones['laboral'] %}
+                                <option value="{{ op }}">{{ op }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-4 rounded-xl shadow-lg transform transition hover:scale-[1.02]">
+                    ✨ Analizar mi Perfil con IA
+                </button>
+            </form>
+        </div>
+
+        <div class="md:col-span-1 space-y-6">
+            
+            {% if resultado %}
+            <div class="bg-gray-800 rounded-2xl p-6 border border-green-500/50 shadow-[0_0_20px_rgba(16,185,129,0.2)] animate-pulse-once">
+                <div class="text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/20 text-green-400 text-3xl mb-4">
+                        🎯
+                    </div>
+                    <p class="text-gray-400 text-sm uppercase tracking-wide font-bold mb-2">La IA predice que eres:</p>
+                    <h2 class="text-3xl font-bold text-white mb-4">{{ resultado }}</h2>
+                    
+                    <div class="text-xs text-gray-500 bg-gray-900/50 p-3 rounded-lg border border-gray-700">
+                        Basado en tus ingresos, edad y experiencia, este perfil optimiza tu retorno y minimiza riesgos innecesarios.
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="bg-gray-800/50 rounded-2xl p-6 border border-gray-700 border-dashed text-center opacity-75">
+                <div class="text-4xl mb-4">🤖</div>
+                <h3 class="text-white font-bold mb-2">Esperando datos...</h3>
+                <p class="text-sm text-gray-400">Completa el formulario para activar el motor neuronal.</p>
+            </div>
+            {% endif %}
+
+            <div class="bg-blue-900/20 rounded-xl p-6 border border-blue-800/50">
+                <h4 class="font-bold text-blue-400 mb-2 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    ¿Cómo funciona?
+                </h4>
+                <p class="text-sm text-blue-200/70 leading-relaxed">
+                    Usamos un modelo <strong>Random Forest</strong> entrenado con datos históricos de miles de clientes reales para encontrar patrones ocultos en tu perfil financiero.
+                </p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    .animate-pulse-once {
+        animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1);
+    }
+    @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 0 20px rgba(16,185,129,0.2); }
+        50% { box-shadow: 0 0 40px rgba(16,185,129,0.5); }
+    }
+</style>
+
+{% endblock %}

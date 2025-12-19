@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "titulo": "Pandemia Global",
+    "noticia": "La OMS declara emergencia sanitaria mundial. Fronteras cerrando.",
+    "sentimiento": "Pánico Extremo",
+    "score_sentimiento": 0.1,
+    "cambio_mercado": -15.5,
+    "explicacion": "En momentos de incertidumbre global, el efectivo es rey. Los mercados odian lo desconocido."
+  },
+  {
+    "id": 2,
+    "titulo": "Boom Tecnológico",
+    "noticia": "Nueva IA revoluciona la productividad. Acciones Tech se disparan.",
+    "sentimiento": "Euforia",
+    "score_sentimiento": 0.9,
+    "cambio_mercado": 8.4,
+    "explicacion": "La innovación disruptiva suele atraer capital masivo, inflando precios rápidamente."
+  }
+]

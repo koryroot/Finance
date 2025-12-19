@@ -9,4 +9,9 @@ firebase_credentials.json
 *.vscode
 *.idea
 *.iml
-*.pyc       
+*.pyc
+*.dockerignore
+compose.yaml
+Dockerfile
+README.Docker.md 
+venv/
