@@ -26,10 +26,6 @@
                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition">
                 + Nuevo Ahorro
             </a>
-            <a href="{{ url_for('savings.pay') }}"
-               class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold transition">
-                Registrar Pago
-            </a>
         </div>
     </div>
 
@@ -39,7 +35,9 @@
                 <tr>
                     <th class="p-4">Meta</th>
                     <th class="p-4">Objetivo</th>
+                    <th class="p-4">Fecha</th>
                     <th class="p-4">Ahorrado</th>
+                    <th class="p-4">Compromiso Mensual</th>
                     <th class="p-4">Estado</th>
                     <th class="p-4">Acción</th>
                 </tr>
@@ -49,10 +47,16 @@
                 <tr class="hover:bg-gray-700 transition">
                     <td class="p-4 text-white font-medium">{{ s.goal_name }}</td>
                     <td class="p-4 text-blue-400 font-bold">
-                        RD$ {{ s.goal_amount|number_format }}
+                        RD$ {{ s.goal_amount or 0|number_format }}
+                    </td>
+                    <td class="p-4 text-blue-400 font-bold">
+                        {{ s.target_date if s.target_date else 'N/A' }}
                     </td>
                     <td class="p-4 text-green-400 font-bold">
-                        RD$ {{ s.saved_amount|number_format }}
+                        RD$ {{ s.saved_amount or 0|number_format }}
+                    </td>
+                    <td class="p-4 text-green-400 font-bold">
+                        RD$ {{ s.monthly_commitment or 0|number_format }}
                     </td>
                     <td class="p-4">
                         {% if s.achieved %}

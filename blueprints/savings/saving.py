@@ -2,9 +2,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from datetime import datetime
 from firebase_config import db
-from .auth import login_required
+from ..auth import login_required
 
-savings_bp = Blueprint('savings', __name__, template_folder='../templates')
+savings_bp = Blueprint('savings', __name__, template_folder='../../templates/Savings')
 
 @savings_bp.route('/history')
 @login_required
@@ -63,6 +63,10 @@ def pay(saving_id):
         return render_template('pay_saving.html', saving_id=saving_id)
 
     payment_amount = float(request.form.get('payment_amount'))
+    balance = get_income_sum(user_id) - get_expenses_sum(user_id)
+    if payment_amount > balance:
+        flash('No tienes suficiente balance para hacer este pago.', 'danger')
+        return redirect(url_for('savings.pay', saving_id=saving_id))
 
     saving_ref = db.collection('users').document(user_id).collection('savings').document(saving_id)
     saving_doc = saving_ref.get()
@@ -80,11 +84,21 @@ def pay(saving_id):
             'saved_amount': new_saved_amount,
             'achieved': achieved
         })
+        #Add expense
+        expense_data = {
+            'description': f'Pago a ahorro: {saving_data.get("goal_name", "")}',
+            'amount': payment_amount,
+            'categoryId': 'savings',
+            'frequency': 'ocasional',
+            'date': datetime.now().strftime('%Y-%m-%d'),
+            'created_at': datetime.now()
+        }
+        db.collection('users').document(user_id).collection('expenses').add(expense_data)
         flash('Pago registrado exitosamente.', 'success')
     except Exception as e:
         flash(f'Error al registrar el pago: {e}', 'danger')
 
-    return redirect(url_for('savings.history'))
+    return redirect(url_for('savings.history', saving_id=saving_id))
 
 
 def calculate_monthly_commitment(goal_amount, target_date):
@@ -94,3 +108,29 @@ def calculate_monthly_commitment(goal_amount, target_date):
     if months_diff <= 0:
         return goal_amount  # Si la fecha objetivo ya pasó o es este mes, se debe ahorrar todo de inmediato
     return goal_amount / months_diff
+
+def get_income_sum(user_id):
+    income_docs = db.collection('users').document(user_id).collection('income').stream()
+    total_income = 0
+    for doc in income_docs:
+        d = doc.to_dict()
+        freq = d.get('frequency', 'ocasional')
+        amt = float(d.get('amount', 0))
+        if freq == 'mensual': total_income += amt
+        elif freq == 'quincenal': total_income += (amt * 26) / 12
+        elif freq == 'anual': total_income += amt / 12
+        else: total_income += 0  # Ocasional no se cuenta en el ingreso mensual fijo
+    return total_income
+
+def get_expenses_sum(user_id):
+    expense_docs = db.collection('users').document(user_id).collection('expenses').stream()
+    total_expenses = 0
+    for doc in expense_docs:
+        d = doc.to_dict()
+        freq = d.get('frequency', 'ocasional')
+        amt = float(d.get('amount', 0))
+        if freq == 'mensual': total_expenses += amt
+        elif freq == 'quincenal': total_expenses += (amt * 26) / 12
+        elif freq == 'anual': total_expenses += amt / 12
+        else: total_expenses += 0  # Ocasional no se cuenta en el gasto mensual fijo
+    return total_expenses
