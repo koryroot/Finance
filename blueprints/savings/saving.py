@@ -2,9 +2,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from datetime import datetime
 from firebase_config import db
-from .auth import login_required
+from ..auth import login_required
 
-savings_bp = Blueprint('savings', __name__, template_folder='../templates')
+savings_bp = Blueprint('savings', __name__, template_folder='../../templates/Savings')
 
 @savings_bp.route('/history')
 @login_required
@@ -98,7 +98,7 @@ def pay(saving_id):
     except Exception as e:
         flash(f'Error al registrar el pago: {e}', 'danger')
 
-    return redirect(url_for('savings.history'))
+    return redirect(url_for('savings.history', saving_id=saving_id))
 
 
 def calculate_monthly_commitment(goal_amount, target_date):
